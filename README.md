@@ -1,0 +1,2 @@
+# steel-data-ingestion
+software multithread responsável pela leitura de dados deste sistema de inspeção de defeitos, apresentando-os adequadamente em dois terminais de vídeo, sendo um na sala de controle da laminação e outro no centro de pesquisas. O primeiro destes terminais apresentará dados do processo de laminação, de interesse apenas para fins de controle e supervisão do processo, ao passo que o segundo terminal é dedicado para análise dos defeitos superficiais nas tiras de aço de forma a identificar suas causas e a execução de medidas para eliminar  os mesmos.
