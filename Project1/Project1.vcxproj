@@ -149,6 +149,7 @@
     <ClCompile Include="StripDefectDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CatchProcessData.h" />
     <ClInclude Include="CheckForError.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

@@ -44,6 +44,9 @@
     <ClInclude Include="CheckForError.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
+    <ClInclude Include="CatchProcessData.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="steel-data-ingestion.rc">
