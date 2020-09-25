@@ -40,9 +40,10 @@ int main(char args[]) {
 		&Thread1Id
 	);
 
-	while (true) {
+	char a = 0;
 	cout << "Main task";
-
+	while (a!= 13) {
+	cin >> a;
 	}
 
 
