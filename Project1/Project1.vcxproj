@@ -144,9 +144,7 @@
     <ClCompile Include="CatchStripDefect.cpp" />
     <ClCompile Include="DefectInspectionSysRead.cpp" />
     <ClCompile Include="KeyboardRead.cpp" />
-    <ClCompile Include="ProcessDataDisplay.cpp" />
     <ClCompile Include="SteelDataInjection.cpp" />
-    <ClCompile Include="StripDefectDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CatchProcessData.h" />
