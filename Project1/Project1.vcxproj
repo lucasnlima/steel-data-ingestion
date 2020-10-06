@@ -87,7 +87,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -144,9 +144,11 @@
     <ClCompile Include="CatchStripDefect.cpp" />
     <ClCompile Include="DefectInspectionSysRead.cpp" />
     <ClCompile Include="KeyboardRead.cpp" />
+    <ClCompile Include="MessageGenerate.cpp" />
     <ClCompile Include="SteelDataInjection.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MessageGenerate.h" />
     <ClInclude Include="CatchProcessData.h" />
     <ClInclude Include="CheckForError.h" />
     <ClInclude Include="resource.h" />

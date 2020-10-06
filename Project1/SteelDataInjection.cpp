@@ -7,6 +7,7 @@
 #include <string>
 #include "CheckForError.h"
 #include "CatchProcessData.h"
+#include "MessageGenerate.h"
 
 #define MAX_POSICOES 200
 
@@ -17,7 +18,7 @@ using namespace std;
 
 // Definindo a lista circular como ma
 string listaMensagens[200];
-int currentIndex = 0;
+long currentIndex = 0;
 
 HANDLE hSemaphoreLVazia;
 HANDLE hSemaphoreLCheia;
@@ -108,7 +109,7 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 					//Função do processo de display que exibe na tela a
 					//string
 					listaMensagens[i] = "";	
-					ReleaseSemaphore(hSemaphoreLVazia, NULL, NULL);
+					ReleaseSemaphore(hSemaphoreLVazia, 1, NULL);
 				}				
 			}		
 	}
@@ -123,7 +124,7 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 				
 				cout << "mensagem tipo 22 encontrada. [MENSAGEM]: " << listaMensagens[i] << endl;
 				listaMensagens[i] = "";
-				ReleaseSemaphore(hSemaphoreLVazia, NULL, NULL);
+				ReleaseSemaphore(hSemaphoreLVazia, 1, NULL);
 			}
 			
 		}
@@ -132,26 +133,6 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 }
 
 DWORD WINAPI CatchProcessData() {
-
-	struct mensagemTipo1 {
-		long nseq;
-		int tipo;
-		int cadeira;
-		int gravidade;
-		int classe;
-		string idFoto;
-		SYSTEMTIME tempo;
-	};
-
-	struct mensagemTipo2 {
-		long nseq;
-		int tipo;
-		int cadeira;
-		string id;
-		float temp;
-		float vel;
-		SYSTEMTIME tempo;
-	};
 
 	struct itemLista {
 		string mensagem;
@@ -167,33 +148,17 @@ DWORD WINAPI CatchProcessData() {
 		double reference = (double)(rand() % (maior - menor + 1) + menor);
 		tick = clock();
 		int a = 0;
-		char error_message[36];
-		char data_message[45];
-		struct mensagemTipo1 mensagemTipo1;
-		struct mensagemTipo2 mensagemTipo2;
 		int currentNSEQTipo1 = 1;
 		int currentNSEQTipo2 = 1;
 		std::string msg1;
 		std::string msg2;
 
-		SYSTEMTIME  now;
-
 		std::cout << '\n' << "Thread1";
 		while (true) {
 			tempo = (clock() - tick) * 1000 / CLOCKS_PER_SEC;
 			if (tempo >= reference) {
-				GetLocalTime(&now);
 
-				mensagemTipo1.nseq = currentNSEQTipo1;
-				mensagemTipo1.tipo = 11;
-				mensagemTipo1.cadeira = rand() % 7;
-				mensagemTipo1.gravidade = rand() % 99;
-				mensagemTipo1.classe = rand() % 10;
-				mensagemTipo1.idFoto = "ABC88F";
-				mensagemTipo1.tempo = now;
-
-				msg1 = std::to_string(mensagemTipo1.nseq) + "/" + to_string(mensagemTipo1.tipo) + "/" + to_string(mensagemTipo1.cadeira) + "/" + to_string(mensagemTipo1.gravidade) + "/" + to_string(mensagemTipo1.classe) + "/" + mensagemTipo1.idFoto + "/" + std::to_string(mensagemTipo1.tempo.wHour) + ":" + std::to_string(mensagemTipo1.tempo.wMinute) + ":" + std::to_string(mensagemTipo1.tempo.wSecond) + ":" + std::to_string(mensagemTipo1.tempo.wMilliseconds);
-				
+				msg1 = GenerateMessageType1(currentNSEQTipo1);
 				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 				listaMensagens[currentIndex] = msg1;
 				std::cout << '\n' << msg1;				
@@ -205,18 +170,9 @@ DWORD WINAPI CatchProcessData() {
 				tick = clock();
 			}
 			if (tempo == 500) {
-				GetLocalTime(&now);
-				mensagemTipo2.nseq = currentNSEQTipo2;
-				mensagemTipo2.tipo = 22;
-				mensagemTipo2.cadeira = rand() % 7;
-				mensagemTipo2.id = "E4";
-				mensagemTipo2.temp = 2700.4;
-				mensagemTipo2.vel = 4000.7;
-				mensagemTipo2.tempo = now;
 
-				msg2 = std::to_string(mensagemTipo2.nseq) + "/" + to_string(mensagemTipo2.tipo) + "/" + to_string(mensagemTipo2.cadeira) + "/" + mensagemTipo2.id + "/" + to_string(mensagemTipo2.temp) + "/" + to_string(mensagemTipo2.vel) + "/" + std::to_string(mensagemTipo2.tempo.wHour) + ":" + std::to_string(mensagemTipo2.tempo.wMinute) + ":" + std::to_string(mensagemTipo2.tempo.wSecond) + ":" + std::to_string(mensagemTipo2.tempo.wMilliseconds);
-				
-				
+				msg2 = GenerateMessageType2(currentNSEQTipo2);
+					
 				listaMensagens[currentIndex] = msg2;
 
 				std::cout << '\n' << msg2;
