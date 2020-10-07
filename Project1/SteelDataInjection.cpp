@@ -20,6 +20,7 @@ using namespace std;
 string listaMensagens[200];
 long currentIndex = 0;
 int i,j;
+int listCount = 200;
 LONG semCount;
 LONG semCount11;
 LONG semCount22;
@@ -27,6 +28,7 @@ LONG semCount22;
 HANDLE hSemaphoreLVazia;
 HANDLE hSemaphoreLCheiaTipo11;
 HANDLE hSemaphoreLCheiaTipo22;
+HANDLE hMutexVarLista;
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
@@ -68,6 +70,7 @@ int main(char args[]) {
 	hSemaphoreLVazia = CreateSemaphore(NULL, MAX_POSICOES, MAX_POSICOES, (LPCWSTR)"SemListaVazia");
 	hSemaphoreLCheiaTipo11 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia11");
 	hSemaphoreLCheiaTipo22 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia22");
+	hMutexVarLista = CreateMutex(NULL, false, (LPCWSTR)"hMutexVarLista");
 
 	HANDLE h_Thread1 = (HANDLE)_beginthreadex(
 		NULL,
@@ -112,12 +115,15 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 		for (i = 0; i < 200; i++) {
 			WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
 			if (listaMensagens[i].find("\/11\/", 0) != string::npos) {
-				std::cout << "\n[MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
+				std::cout << "\n[CONSUMIDA MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
 				//Função do processo de display que exibe na tela a
 				//string
 				listaMensagens[i] = "";
-				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
-				std::cout << "[QTD PREENCHIDA] >> " << semCount << endl;
+				WaitForSingleObject(hMutexVarLista, INFINITE);
+				++listCount;
+				cout << "[--- COUNT]: " << listCount << endl;
+				ReleaseMutex(hMutexVarLista);				
+				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);				
 			}
 		}
 		return 0;
@@ -130,17 +136,20 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 		for (j = 0; j < 200; j++) {
 			WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
 			if (listaMensagens[j].find("\/22\/", 0) != string::npos) {
-
-				cout << "\n[MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
+				cout << "\n[CONSUMIDA MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
 				listaMensagens[j] = "";
+				
+				WaitForSingleObject(hMutexVarLista, INFINITE);
+				++listCount;
+				cout << "[--- COUNT]: " << listCount << endl;
+				ReleaseMutex(hMutexVarLista);				
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
-				cout << "[QTD PREENCHIDA] >> " << semCount << endl;
-				cout << "[QTD PREENCHIDA22] >> " << semCount22 << endl;
+				break;
 			}
 		}
-		return 0;
-
+		ReleaseMutex(hMutexLista);		
 	}
+	return 0;
 }
 
 DWORD WINAPI CatchProcessData() {
@@ -171,20 +180,41 @@ DWORD WINAPI CatchProcessData() {
 				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
 
 				msg1 = GenerateMessageType1(currentNSEQTipo1);
+				WaitForSingleObject(hMutexVarLista, INFINITE);
+				if (--listCount == 0) {
+					cout << "-------- A LISTA ESTA CHEIA ------------";
+				}
+				else {
+					cout << "[--- COUNT]: " << listCount << endl;
+				}
+				ReleaseMutex(hMutexVarLista);
 				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+				
 				listaMensagens[currentIndex] = msg1;
-				std::cout << '\n' << msg1;				
+				cout << "[DEPOSITADA MENSAGEM TIPO 11]: " << msg1 << endl;
+				//std::cout << '\n' << msg1;				
 				currentNSEQTipo1++;
 				currentIndex++;
 				if (currentIndex == 200) currentIndex = 0;
 				ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
 				cout << "[QTD PREENCHIDA11] >> " << semCount11 << endl;
 			
-				Sleep(1000);
-			if (listaMensagens->size() == 200) {
-				std::cout << "a lista esta cheia";
-				//system("pause");
+
+				msg2 = GenerateMessageType2(currentNSEQTipo2);
+				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+				WaitForSingleObject(hMutexVarLista, INFINITE);
+				--listCount;
+				ReleaseMutex(hMutexVarLista);
+				listaMensagens[currentIndex] = msg2;
+				cout << "[DEPOSITADA MENSAGEM TIPO 22]: " << msg2 << endl;
+
+				currentNSEQTipo2++;				
+				currentIndex++;
+				if (currentIndex == 200) currentIndex = 0;
+				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+				cout << "[QTD PREENCHIDA22] >> " << semCount22 << endl;
 			}
+				Sleep(1000);
 		}
 
 	}
