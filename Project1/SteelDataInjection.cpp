@@ -30,6 +30,9 @@ HANDLE hSemaphoreLCheiaTipo11;
 HANDLE hSemaphoreLCheiaTipo22;
 HANDLE hMutexLista;
 HANDLE hMutexVarLista;
+HANDLE hEventPausa11;
+HANDLE hEventPausa22;
+
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
@@ -65,11 +68,18 @@ int main(char args[]) {
 	unsigned int Thread2Id;
 	unsigned int Thread3Id;
 
+	//---Incialização dos Semaforos
 	hSemaphoreLVazia = CreateSemaphore(NULL, MAX_POSICOES, MAX_POSICOES, "SemListaVazia");
 	hSemaphoreLCheiaTipo11 = CreateSemaphore(NULL, 0, MAX_POSICOES, "SemListaCheia11");
 	hSemaphoreLCheiaTipo22 = CreateSemaphore(NULL, 0, MAX_POSICOES, "SemListaCheia22");
+
+	//---Incialização do Mutexes
 	hMutexLista = CreateMutex(NULL, false, "hMutexLista");
 	hMutexVarLista = CreateMutex(NULL, false, "hMutexVarLista");
+
+	//--Inicizalização dos Eventos
+	hEventPausa11 = CreateEvent(NULL, true, true, "Evento11");
+	hEventPausa22 = CreateEvent(NULL, true, true, "Evento22");
 
 	HANDLE h_Thread1 = (HANDLE)_beginthreadex(
 		NULL,
@@ -99,10 +109,38 @@ int main(char args[]) {
 		&Thread3Id
 	);
 
+	//---Aguarda leitura do teclada
 	char a = 0;
+	bool event11 = false;
+	bool event22 = false;
 	std::cout << "Main task";
-	while (a!= 13) {
-	cin >> a;
+	while (a != 32) {
+		cin >> a;
+		switch (a)
+		{
+		case 49:
+			event11 = !event11;
+			if (event11) {
+				std::cout << "Pausa no consumo de mensagens tipo 11";
+				ResetEvent(hEventPausa11);
+			}
+			else {
+				std::cout << "Continua consumo de mensagens tipo 11";
+				SetEvent(hEventPausa11);
+			}
+		case 50:
+			event22 = !event22;
+			if (event22) {
+				std::cout << "Pausa no consumo de mensagens tipo 22";
+				ResetEvent(hEventPausa22);
+			}
+			else {
+				std::cout << "Continua consumo de mensagens tipo 22";
+				SetEvent(hEventPausa22);
+			}
+		default:
+			cin >> a;
+		}
 	}
 
 
@@ -111,6 +149,7 @@ int main(char args[]) {
 
 DWORD WINAPI CapturaDeMensagensTipo11() {
 	while (true) {
+		WaitForSingleObject(hEventPausa11, INFINITE);
 		WaitForSingleObject(hMutexLista, INFINITE);
 		WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
 		for (i = 0; i < 200; i++) {			
@@ -135,6 +174,7 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 	// criar um mutex pros consumidores
 DWORD WINAPI CapturaDeMensagensTipo22() {
 	while (true) {	
+		WaitForSingleObject(hEventPausa22, INFINITE);
 		WaitForSingleObject(hMutexLista, INFINITE);
 		WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
 		for (j = 0; j < 200; j++) {			
