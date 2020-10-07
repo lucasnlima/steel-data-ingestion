@@ -36,10 +36,10 @@ DWORD WINAPI CapturaDeMensagensTipo11();
 DWORD WINAPI CapturaDeMensagensTipo22();
 
 int main(char args[]) {
-	STARTUPINFOA siDataDisplay;				    // StartUpInformation para novo processo
+	STARTUPINFO siDataDisplay;				    // StartUpInformation para novo processo
 	PROCESS_INFORMATION ProcessDataDisplay;	// Informações sobre novo processo criado
 
-	STARTUPINFOA siDefectDisplay;
+	STARTUPINFO siDefectDisplay;
 	PROCESS_INFORMATION StripDefectDisplay;
 	
 	
@@ -53,26 +53,23 @@ int main(char args[]) {
 	ZeroMemory(&StripDefectDisplay, sizeof(StripDefectDisplay));
 
 
-	if (!CreateProcessA("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Release\\ProcessDataDisplay.exe", NULL, NULL, NULL,FALSE, CREATE_NEW_CONSOLE, NULL,NULL, &siDataDisplay, &ProcessDataDisplay)) {
+	if (!CreateProcess("ProcessDataDisplay.exe", NULL, NULL, NULL,FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siDataDisplay, &ProcessDataDisplay)) {
 		printf("CreateProcess failed (%d).\n", GetLastError());
 	};
 
-	if (!CreateProcessA("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Release\\StreepDefectDisplay.exe", NULL, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siDefectDisplay, &StripDefectDisplay)) {
+	if (!CreateProcess("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\StreepDefectDisplay.exe", NULL, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siDefectDisplay, &StripDefectDisplay)) {
 		printf("CreateProcess failed (%d).\n", GetLastError());
 	};
-
-
 
 	unsigned int Thread1Id;
 	unsigned int Thread2Id;
 	unsigned int Thread3Id;
 
-
-	hSemaphoreLVazia = CreateSemaphore(NULL, MAX_POSICOES, MAX_POSICOES, (LPCWSTR)"SemListaVazia");
-	hSemaphoreLCheiaTipo11 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia11");
-	hSemaphoreLCheiaTipo22 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia22");
-	hMutexLista = CreateMutex(NULL, false, (LPCWSTR)"hMutexLista");
-	hMutexVarLista = CreateMutex(NULL, false, (LPCWSTR)"hMutexVarLista");
+	hSemaphoreLVazia = CreateSemaphore(NULL, MAX_POSICOES, MAX_POSICOES, "SemListaVazia");
+	hSemaphoreLCheiaTipo11 = CreateSemaphore(NULL, 0, MAX_POSICOES, "SemListaCheia11");
+	hSemaphoreLCheiaTipo22 = CreateSemaphore(NULL, 0, MAX_POSICOES, "SemListaCheia22");
+	hMutexLista = CreateMutex(NULL, false, "hMutexLista");
+	hMutexVarLista = CreateMutex(NULL, false, "hMutexVarLista");
 
 	HANDLE h_Thread1 = (HANDLE)_beginthreadex(
 		NULL,
@@ -114,6 +111,7 @@ int main(char args[]) {
 
 DWORD WINAPI CapturaDeMensagensTipo11() {
 	while (true) {
+		WaitForSingleObject(hMutexLista, INFINITE);
 		WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
 		for (i = 0; i < 200; i++) {			
 			if (listaMensagens[i].find("\/11\/", 0) != string::npos) {
@@ -130,8 +128,8 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 			}
 			ReleaseMutex(hMutexLista);
 		}
-		return 0;
 	}
+	return 0;
 }
 
 	// criar um mutex pros consumidores
