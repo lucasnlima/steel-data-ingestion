@@ -27,6 +27,7 @@ LONG semCount22;
 HANDLE hSemaphoreLVazia;
 HANDLE hSemaphoreLCheiaTipo11;
 HANDLE hSemaphoreLCheiaTipo22;
+HANDLE hMutexLista;
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
@@ -68,6 +69,7 @@ int main(char args[]) {
 	hSemaphoreLVazia = CreateSemaphore(NULL, MAX_POSICOES, MAX_POSICOES, (LPCWSTR)"SemListaVazia");
 	hSemaphoreLCheiaTipo11 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia11");
 	hSemaphoreLCheiaTipo22 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia22");
+	hMutexLista = CreateMutex(NULL, false, (LPCWSTR)"MutexLista");
 
 	HANDLE h_Thread1 = (HANDLE)_beginthreadex(
 		NULL,
@@ -109,8 +111,9 @@ int main(char args[]) {
 
 DWORD WINAPI CapturaDeMensagensTipo11() {
 	while (true) {
-		for (i = 0; i < 200; i++) {
-			WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
+		WaitForSingleObject(hMutexLista, INFINITE); 
+		WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
+		for (i = 0; i < 200; i++) {			
 			if (listaMensagens[i].find("\/11\/", 0) != string::npos) {
 				std::cout << "\n[MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
 				//Função do processo de display que exibe na tela a
@@ -118,29 +121,31 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 				listaMensagens[i] = "";
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
 				std::cout << "[QTD PREENCHIDA] >> " << semCount << endl;
+				break;
 			}
 		}
-		return 0;
+		ReleaseMutex(hMutexLista);
 	}
+	return 0;
 }
 
 	// criar um mutex pros consumidores
 DWORD WINAPI CapturaDeMensagensTipo22() {
-	while (true) {		
-		for (j = 0; j < 200; j++) {
-			WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
+	while (true) {	
+		WaitForSingleObject(hMutexLista, INFINITE);
+		WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
+		for (j = 0; j < 200; j++) {			
 			if (listaMensagens[j].find("\/22\/", 0) != string::npos) {
-
 				cout << "\n[MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
 				listaMensagens[j] = "";
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
 				cout << "[QTD PREENCHIDA] >> " << semCount << endl;
-				cout << "[QTD PREENCHIDA22] >> " << semCount22 << endl;
+				break;
 			}
 		}
-		return 0;
-
+		ReleaseMutex(hMutexLista);		
 	}
+	return 0;
 }
 
 DWORD WINAPI CatchProcessData() {
@@ -172,7 +177,7 @@ DWORD WINAPI CatchProcessData() {
 				msg1 = GenerateMessageType1(currentNSEQTipo1);
 				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 				listaMensagens[currentIndex] = msg1;
-				std::cout << '\n' << msg1;				
+				//std::cout << '\n' << msg1;				
 				currentNSEQTipo1++;
 				currentIndex++;
 				if (currentIndex == 200) currentIndex = 0;
@@ -187,12 +192,13 @@ DWORD WINAPI CatchProcessData() {
 				msg2 = GenerateMessageType2(currentNSEQTipo2);
 					
 				listaMensagens[currentIndex] = msg2;
-				std::cout << '\n' << msg2;
+				//std::cout << '\n' << msg2;
 				currentNSEQTipo2++;				
 				currentIndex++;
 				if (currentIndex == 200) cout << "lista cheia";
 				if (currentIndex == 200) currentIndex = 0;
 				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+				cout << "[QTD PREENCHIDA22] >> " << semCount22 << endl;
 			}
 			if (listaMensagens->size() == 200) {
 				std::cout << "a lista esta cheia";
