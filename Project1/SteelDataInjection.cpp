@@ -175,16 +175,15 @@ DWORD WINAPI CatchProcessData() {
 
 		std::cout << '\n' << "Thread1";
 		while (true) {
-				msg2 = GenerateMessageType2(currentNSEQTipo2);		
-				listaMensagens[currentIndex] = msg2;
-				std::cout << '\n' << msg2;
-				currentNSEQTipo2++;				
-				currentIndex++;
-				if (currentIndex == 200) cout << "lista cheia";
-				if (currentIndex == 200) currentIndex = 0;
-				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+
+				if (currentIndex == 200) {
+					cout << "lista cheia";
+					currentIndex = 0;
+					ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+				}
 
 				msg1 = GenerateMessageType1(currentNSEQTipo1);
+
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				if (--listCount == 0) {
 					cout << "-------- A LISTA ESTA CHEIA ------------";
@@ -221,7 +220,7 @@ DWORD WINAPI CatchProcessData() {
 				currentIndex++;
 				if (currentIndex == 200) currentIndex = 0;
 				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
-				Sleep(1000);
+ 				Sleep(1000);
 			}
 			
 		}
