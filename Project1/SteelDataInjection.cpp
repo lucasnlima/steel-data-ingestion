@@ -19,9 +19,14 @@ using namespace std;
 // Definindo a lista circular como ma
 string listaMensagens[200];
 long currentIndex = 0;
+int i,j;
+LONG semCount;
+LONG semCount11;
+LONG semCount22;
 
 HANDLE hSemaphoreLVazia;
-HANDLE hSemaphoreLCheia;
+HANDLE hSemaphoreLCheiaTipo11;
+HANDLE hSemaphoreLCheiaTipo22;
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
@@ -54,13 +59,15 @@ int main(char args[]) {
 	};
 
 
+
 	unsigned int Thread1Id;
 	unsigned int Thread2Id;
 	unsigned int Thread3Id;
 
 
 	hSemaphoreLVazia = CreateSemaphore(NULL, MAX_POSICOES, MAX_POSICOES, (LPCWSTR)"SemListaVazia");
-	hSemaphoreLCheia = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia");
+	hSemaphoreLCheiaTipo11 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia11");
+	hSemaphoreLCheiaTipo22 = CreateSemaphore(NULL, 0, MAX_POSICOES, (LPCWSTR)"SemListaCheia22");
 
 	HANDLE h_Thread1 = (HANDLE)_beginthreadex(
 		NULL,
@@ -81,17 +88,17 @@ int main(char args[]) {
 
 	);
 
-	//HANDLE h_thread3 = (HANDLE)_beginthreadex(
-	//	NULL,
-	//	0,
-	//	(CAST_FUNCTION)CapturaDeMensagensTipo22,
-	//	NULL,
-	//	0,
-	//	&Thread3Id
-	//);
+	HANDLE h_thread3 = (HANDLE)_beginthreadex(
+		NULL,
+		0,
+		(CAST_FUNCTION)CapturaDeMensagensTipo22,
+		NULL,
+		0,
+		&Thread3Id
+	);
 
 	char a = 0;
-	cout << "Main task";
+	std::cout << "Main task";
 	while (a!= 13) {
 	cin >> a;
 	}
@@ -102,34 +109,38 @@ int main(char args[]) {
 
 DWORD WINAPI CapturaDeMensagensTipo11() {
 	while (true) {
-		for (int i = 0; i < 200; i++) {
-			WaitForSingleObject(hSemaphoreLCheia, INFINITE);
-				if (listaMensagens[i].find("/11/")) {						
-					cout << "mensagem tipo 11 encontrada. [MENSAGEM]: " << listaMensagens[i] << endl;
-					//Função do processo de display que exibe na tela a
-					//string
-					listaMensagens[i] = "";	
-					ReleaseSemaphore(hSemaphoreLVazia, 1, NULL);
-				}				
-			}		
+		for (i = 0; i < 200; i++) {
+			WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
+			if (listaMensagens[i].find("\/11\/", 0) != string::npos) {
+				std::cout << "\n[MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
+				//Função do processo de display que exibe na tela a
+				//string
+				listaMensagens[i] = "";
+				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
+				std::cout << "[QTD PREENCHIDA] >> " << semCount << endl;
+			}
+		}
+		return 0;
 	}
-	return 0;
 }
 
+	// criar um mutex pros consumidores
 DWORD WINAPI CapturaDeMensagensTipo22() {
-	while (true) {
-		for (int i = 0; i < 200; i++) {
-			WaitForSingleObject(hSemaphoreLCheia, INFINITE);
-			if (listaMensagens[i].find("/22/")) {
-				
-				cout << "mensagem tipo 22 encontrada. [MENSAGEM]: " << listaMensagens[i] << endl;
-				listaMensagens[i] = "";
-				ReleaseSemaphore(hSemaphoreLVazia, 1, NULL);
+	while (true) {		
+		for (j = 0; j < 200; j++) {
+			WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
+			if (listaMensagens[j].find("\/22\/", 0) != string::npos) {
+
+				cout << "\n[MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
+				listaMensagens[j] = "";
+				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
+				cout << "[QTD PREENCHIDA] >> " << semCount << endl;
+				cout << "[QTD PREENCHIDA22] >> " << semCount22 << endl;
 			}
-			
 		}
+		return 0;
+
 	}
-	return 0;
 }
 
 DWORD WINAPI CatchProcessData() {
@@ -165,26 +176,27 @@ DWORD WINAPI CatchProcessData() {
 				currentNSEQTipo1++;
 				currentIndex++;
 				if (currentIndex == 200) currentIndex = 0;
-				ReleaseSemaphore(hSemaphoreLCheia, NULL, NULL);
+				ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
+				cout << "[QTD PREENCHIDA11] >> " << semCount11 << endl;
 				reference = (double)(rand() % (maior - menor + 1) + menor);
 				tick = clock();
 			}
+
 			if (tempo == 500) {
 
 				msg2 = GenerateMessageType2(currentNSEQTipo2);
 					
 				listaMensagens[currentIndex] = msg2;
-
 				std::cout << '\n' << msg2;
-				currentNSEQTipo2++;
-				
+				currentNSEQTipo2++;				
 				currentIndex++;
+				if (currentIndex == 200) cout << "lista cheia";
 				if (currentIndex == 200) currentIndex = 0;
-
+				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
 			}
 			if (listaMensagens->size() == 200) {
 				std::cout << "a lista esta cheia";
-				system("pause");
+				//system("pause");
 			}
 		}
 
