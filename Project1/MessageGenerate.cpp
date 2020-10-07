@@ -2,8 +2,6 @@
 #include <Windows.h>
 #include <iostream>
 
-#define _CRT_SECURE_NO_WARNINGS
-
 struct MESSAGE_TYPE_1 {
 	long nseq  = 0;
 	int tipo = 0;

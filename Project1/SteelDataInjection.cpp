@@ -152,12 +152,7 @@ DWORD WINAPI CatchProcessData() {
 
 	while (true)
 	{
-		clock_t tick;
-		double tempo = 0;
-		int maior = 2000;
-		int menor = 100;
-		double reference = (double)(rand() % (maior - menor + 1) + menor);
-		tick = clock();
+	
 		int a = 0;
 		int currentNSEQTipo1 = 1;
 		int currentNSEQTipo2 = 1;
@@ -166,8 +161,14 @@ DWORD WINAPI CatchProcessData() {
 
 		std::cout << '\n' << "Thread1";
 		while (true) {
-			tempo = (clock() - tick) * 1000 / CLOCKS_PER_SEC;
-			if (tempo >= reference) {
+				msg2 = GenerateMessageType2(currentNSEQTipo2);		
+				listaMensagens[currentIndex] = msg2;
+				std::cout << '\n' << msg2;
+				currentNSEQTipo2++;				
+				currentIndex++;
+				if (currentIndex == 200) cout << "lista cheia";
+				if (currentIndex == 200) currentIndex = 0;
+				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
 
 				msg1 = GenerateMessageType1(currentNSEQTipo1);
 				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
@@ -178,22 +179,8 @@ DWORD WINAPI CatchProcessData() {
 				if (currentIndex == 200) currentIndex = 0;
 				ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
 				cout << "[QTD PREENCHIDA11] >> " << semCount11 << endl;
-				reference = (double)(rand() % (maior - menor + 1) + menor);
-				tick = clock();
-			}
-
-			if (tempo == 500) {
-
-				msg2 = GenerateMessageType2(currentNSEQTipo2);
-					
-				listaMensagens[currentIndex] = msg2;
-				std::cout << '\n' << msg2;
-				currentNSEQTipo2++;				
-				currentIndex++;
-				if (currentIndex == 200) cout << "lista cheia";
-				if (currentIndex == 200) currentIndex = 0;
-				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
-			}
+			
+				Sleep(1000);
 			if (listaMensagens->size() == 200) {
 				std::cout << "a lista esta cheia";
 				//system("pause");
