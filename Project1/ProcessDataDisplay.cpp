@@ -2,7 +2,7 @@
 using namespace std;
 
 int main() {
-	cout << "meu namorado é bonito!";
+	cout << "Processo de display de dados funcionando!";
 	int a;
 	cin >> a;
 }

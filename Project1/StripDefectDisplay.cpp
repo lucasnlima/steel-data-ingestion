@@ -2,7 +2,7 @@
 using namespace std;
 
 int main() {
-	cout << "meu namorado lava minhas calcinha!";
+	cout << "Processo de display dos defeitos de tiras Funcionado!";
 	int a = 0;
 	cin >> a;
 }
