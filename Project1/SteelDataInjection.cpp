@@ -39,6 +39,7 @@ DWORD WINAPI CapturaDeMensagensTipo11();
 DWORD WINAPI CapturaDeMensagensTipo22();
 
 int main(char args[]) {
+
 	STARTUPINFO siDataDisplay;				    // StartUpInformation para novo processo
 	PROCESS_INFORMATION ProcessDataDisplay;	// Informações sobre novo processo criado
 
@@ -56,11 +57,30 @@ int main(char args[]) {
 	ZeroMemory(&StripDefectDisplay, sizeof(StripDefectDisplay));
 
 
-	if (!CreateProcess("ProcessDataDisplay.exe", NULL, NULL, NULL,FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siDataDisplay, &ProcessDataDisplay)) {
+	if (!CreateProcess("..\\ProcessDataDisplay.exe", 
+		NULL, 
+		NULL, 
+		NULL,
+		FALSE, 
+		CREATE_NEW_CONSOLE, 
+		NULL, 
+		NULL, 
+		&siDataDisplay, 
+		&ProcessDataDisplay)) 
+	{
 		printf("CreateProcess failed (%d).\n", GetLastError());
 	};
 
-	if (!CreateProcess("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\StreepDefectDisplay.exe", NULL, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siDefectDisplay, &StripDefectDisplay)) {
+	if (!CreateProcess("..\\StreepDefectDisplay.exe", 
+		NULL, 
+		NULL, 
+		NULL, 
+		FALSE, 
+		CREATE_NEW_CONSOLE, 
+		NULL,
+		NULL, 
+		&siDefectDisplay, 
+		&StripDefectDisplay)) {
 		printf("CreateProcess failed (%d).\n", GetLastError());
 	};
 
