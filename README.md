@@ -5,12 +5,15 @@
 Software multithread responsável pela leitura de dados deste sistema de inspeção de defeitos, apresentando-os adequadamente em dois terminais de vídeo, sendo um na sala de controle da laminação e outro no centro de pesquisas. O primeiro destes terminais apresentará dados do processo de laminação, de interesse apenas para fins de controle e supervisão do processo, ao passo que o segundo terminal é dedicado para análise dos defeitos superficiais nas tiras de aço de forma a identificar suas causas e a execução de medidas para eliminar  os mesmos.
 
 ## Linguagem:
+
 * C/C++
 
 ## Bibliotecas:
+
 * API Win 32
 
 ## Tarefas:
+
 1. Tarefa de leitura do sistema de inspeção de defeitos. Realiza a leitura das mensagens provenientes do
 sistema de inspeção de defeitos e as deposita em uma tabela circular em memória.
 
@@ -27,4 +30,15 @@ aço da tarefa de captura de defeitos das tiras e as exibe no terminal de vídeo
 referentes ao processo de laminação e as exibe no terminal de vídeo na sala de controle da laminação.
 
 6. Tarefa de leitura do teclado. Esta tarefa dá tratamento aos comandos digitados pelo operador. 
+
+## Console:
+
+O console imprime as mensagens de consumo e depósito de mensagens, além de um contador que indica quantas posições estao livres na lista.
+
+## Entradas do teclado:
+
+- "1" : pausa consumo das mensagens do tipo 11. Mandando o comando "1" novamente, o consumo de mensagens do tipo 11 é retomado.
+- "2" : pausa consumo das mensagens do tipo 22. Mandando o comando "2" novamente, o consumo de mensagens do tipo 22 é retomado.
+
+
  

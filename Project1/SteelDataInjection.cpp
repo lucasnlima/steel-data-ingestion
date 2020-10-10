@@ -8,9 +8,9 @@
 #include "CheckForError.h"
 #include "CatchProcessData.h"
 #include "MessageGenerate.h"
+#include <locale>
 
 #define MAX_POSICOES 200
-
 
 typedef unsigned (WINAPI* CAST_FUNCTION)(LPVOID);
 
@@ -39,6 +39,19 @@ DWORD WINAPI CapturaDeMensagensTipo11();
 DWORD WINAPI CapturaDeMensagensTipo22();
 
 int main(char args[]) {
+
+	setlocale(LC_ALL, "Portuguese");
+
+	while (true) {
+		cout << "--------------------------------------------------------" << endl;
+		cout << "|              PROGRAMA STEEL DATA INJECTION           |" << endl;
+		cout << "--------------------------------------------------------" << endl;
+		cout << "[i] Iniciar o programa: " << endl;
+		cout << "* Durante a execução do programa, digite '1' para \nencerrar o funcionamento da thread consumidora \nde mensagens do tipo 11, digite novamente para voltar o consumo" << endl;
+		cout << "* Durante a execução do programa, digite '2' para \nencerrar o funcionamento da thread consumidora \nde mensagens do tipo 22, digite novamente para voltar o consumo" << endl;
+		int c;
+		cin >> c;
+	}
 
 	STARTUPINFO siDataDisplay;				    // StartUpInformation para novo processo
 	PROCESS_INFORMATION ProcessDataDisplay;	// Informações sobre novo processo criado
@@ -133,7 +146,7 @@ int main(char args[]) {
 	char a = 0;
 	bool event11 = false;
 	bool event22 = false;
-	std::cout << "Main task";
+	std::cout << "Main task" << endl;
 	while (a != 32) {
 		cin >> a;
 		switch (a)
@@ -141,25 +154,27 @@ int main(char args[]) {
 		case 49:
 			event11 = !event11;
 			if (event11) {
-				std::cout << "Pausa no consumo de mensagens tipo 11";
+				std::cout << "Pausa no consumo de mensagens tipo 11" << endl;
 				ResetEvent(hEventPausa11);
 			}
 			else {
-				std::cout << "Continua consumo de mensagens tipo 11";
+				std::cout << "Continua consumo de mensagens tipo 11" << endl;
 				SetEvent(hEventPausa11);
 			}
+			break;
 		case 50:
 			event22 = !event22;
 			if (event22) {
-				std::cout << "Pausa no consumo de mensagens tipo 22";
+				std::cout << "Pausa no consumo de mensagens tipo 22" << endl;
 				ResetEvent(hEventPausa22);
 			}
 			else {
-				std::cout << "Continua consumo de mensagens tipo 22";
+				std::cout << "Continua consumo de mensagens tipo 22" << endl;
 				SetEvent(hEventPausa22);
 			}
+			break;
 		default:
-			cin >> a;
+			break;
 		}
 	}
 
@@ -169,18 +184,18 @@ int main(char args[]) {
 
 DWORD WINAPI CapturaDeMensagensTipo11() {
 	while (true) {
-		WaitForSingleObject(hEventPausa11, INFINITE);
+		WaitForSingleObject(hEventPausa11, INFINITE);  
 		WaitForSingleObject(hMutexLista, INFINITE);
 		WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
 		for (i = 0; i < 200; i++) {			
 			if (listaMensagens[i].find("\/11\/", 0) != string::npos) {
-				std::cout << "\n[CONSUMIDA MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
+				std::cout << "[CONSUMIDA MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
 				//Função do processo de display que exibe na tela a
 				//string
 				listaMensagens[i] = "";
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				++listCount;
-				cout << "[--- COUNT]: " << listCount << endl;
+				//cout << "[--- COUNT]: " << listCount << endl;
 				ReleaseMutex(hMutexVarLista);				
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);	
 				break;
@@ -199,12 +214,12 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 		WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
 		for (j = 0; j < 200; j++) {			
 			if (listaMensagens[j].find("\/22\/", 0) != string::npos) {
-				cout << "\n[CONSUMIDA MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
+				cout << "[CONSUMIDA MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
 				listaMensagens[j] = "";
 				
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				++listCount;
-				cout << "[--- COUNT]: " << listCount << endl;
+				//cout << "[--- COUNT]: " << listCount << endl;
 				ReleaseMutex(hMutexVarLista);				
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
 				break;
@@ -216,11 +231,6 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 }
 
 DWORD WINAPI CatchProcessData() {
-
-	struct itemLista {
-		string mensagem;
-		struct itemLista* next;
-	};
 
 	while (true)
 	{
@@ -244,7 +254,7 @@ DWORD WINAPI CatchProcessData() {
 
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				if (--listCount == 0) {
-					cout << "-------- A LISTA ESTA CHEIA ------------";
+					cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
 				}
 				else {
 					cout << "[--- COUNT]: " << listCount << endl;
@@ -264,10 +274,10 @@ DWORD WINAPI CatchProcessData() {
 				msg2 = GenerateMessageType2(currentNSEQTipo2);
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				if (--listCount == 0) {
-					cout << "-------- A LISTA ESTA CHEIA ------------";
+					cout << "-------- A LISTA ESTA CHEIA ------------"<< endl;
 				}
 				else {
-					cout << "[--- COUNT]: " << listCount << endl;
+					//cout << "[--- COUNT]: " << listCount << endl;
 				}
 				ReleaseMutex(hMutexVarLista);
 				WaitForSingleObject(hSemaphoreLVazia, INFINITE);								

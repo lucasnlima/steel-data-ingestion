@@ -1,85 +1,139 @@
 #include <string>
 #include <Windows.h>
 #include <iostream>
+#include <string>
 
+
+using namespace std;
 struct MESSAGE_TYPE_1 {
-	long nseq  = 0;
-	int tipo = 0;
-	int caldeira = 0;
-	int gravidade = 0;
-	int classe = 0;
-	std::string idFoto;
+	char nseq[5];
+	char tipo[2];
+	char caldeira[2];
+	char gravidade[2];
+	char classe[1];
+	char idFoto[6];
 	SYSTEMTIME tempo;
 };
 
 struct MESSAGE_TYPE_2 {
-	long nseq = 0;
-	int tipo = 0;
-	int caldeira = 0;
-	std::string id;
-	float temp = 0;
-	float vel = 0;
+	char nseq[5];
+	char tipo[2];
+	char caldeira[2];
+	char id[8];
+	char tempInt[3];
+	char tempDec[1];
+	char velInt[3];
+	char velDec[1];
 	SYSTEMTIME tempo;
 };
 
 SYSTEMTIME  now;
 
+char* GenerateAlphanumeric() {
+	char alphanumeric[10];
+	int aux;
+
+	for (int i = 0; i<10; i++) {
+		aux = rand() % 2;
+		if (aux) {
+			alphanumeric[i] = (char)48 + rand() % 10;
+		}
+		else {
+			alphanumeric[i] = (char)65 + rand() % 26;
+		}
+	}
+	return alphanumeric;
+}
+
+char* GenerateNumbers() {
+	char numbers[10];
+
+	for (int i = 0; i < 10; i++) {
+		numbers[i] = (char)48 + rand() % 10;
+	}
+	return numbers;
+}
+
 char* GenerateMessageType1(long index) {
 
 	GetLocalTime(&now);
-
+	char* mensagem;
+	mensagem = (char*)malloc(36);
+	ZeroMemory(mensagem, sizeof(mensagem));
 	struct MESSAGE_TYPE_1 msg;
+
+	const string barra = "/";
+	sprintf(msg.nseq,"%05d", index);
+	memcpy(msg.tipo, "11", sizeof(msg.tipo));
+	sprintf(msg.caldeira,"%02d",rand()%7);
+	sprintf(msg.gravidade,"%02d",rand()%100);
+	sprintf(msg.classe,"%1d",rand()%10);
+	memcpy(msg.idFoto, GenerateAlphanumeric(),sizeof(msg.idFoto));
+
+	strncat(mensagem, msg.nseq,5);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.tipo, 2);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.caldeira, 2);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.gravidade, 2);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.classe, 1);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.idFoto, 6);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, to_string(now.wHour).c_str(), 2);
+	strncat(mensagem, ":", 1);
+	strncat(mensagem, to_string(now.wMinute).c_str(), 2);
+	strncat(mensagem, ":", 1);
+	strncat(mensagem, to_string(now.wSecond).c_str(), 2);
+	strncat(mensagem, ":", 1);
+	strncat(mensagem, to_string(now.wMilliseconds).c_str(), 3);
 	
-	msg.nseq = index;
-	msg.tipo = 11;
-	msg.caldeira = rand() % 7;
-	msg.gravidade = rand() % 99;
-	msg.classe = rand() % 10;
-	msg.idFoto = "ABC88F";
-	msg.tempo = now;
-
-	std::string msg_str = std::to_string(msg.nseq) + "/" +
-		std::to_string(msg.tipo) + "/" + std::to_string(msg.caldeira) +
-		"/" + std::to_string(msg.gravidade) + "/" +
-		std::to_string(msg.classe) + "/" +
-		msg.idFoto + "/" +
-		std::to_string(msg.tempo.wHour) +
-		":" + std::to_string(msg.tempo.wMinute) +
-		":" + std::to_string(msg.tempo.wSecond) +
-		":" + std::to_string(msg.tempo.wMilliseconds);
-
-		char* ch_prt = (char*)calloc(msg_str.length() + 1, sizeof(char*));
-		strcpy(ch_prt, msg_str.c_str());
-
-	return ch_prt;
+	return (char*)mensagem;
 }
 
 char* GenerateMessageType2(long index) {
 
-	GetLocalTime(&now);
 
+	GetLocalTime(&now);
+	char* mensagem;
+	mensagem = (char*)malloc(36);
+	ZeroMemory(mensagem, sizeof(mensagem));
 	struct MESSAGE_TYPE_2 msg;
 
-	msg.nseq = index;
-	msg.tipo = 22;
-	msg.caldeira = rand() % 7;
-	msg.id = "E4";
-	msg.temp = 2700.4;
-	msg.vel = 4000.7;
-	msg.tempo = now;
+	sprintf(msg.nseq, "%05d", index);
+	memcpy(msg.tipo, "22", sizeof(msg.tipo));
+	sprintf(msg.caldeira, "%02d", rand() % 7);
+	memcpy(msg.id, GenerateAlphanumeric(), sizeof(msg.id));
+	sprintf(msg.tempInt, "%03d", (rand() % 1000));
+	sprintf(msg.tempDec, "%01d", (rand() % 100));
+	sprintf(msg.velInt, "%03d", (rand() % 1000));
+	sprintf(msg.velDec, "%01d", (rand() % 100));
 
-	std::string msg_str = std::to_string(msg.nseq) +
-		"/" + std::to_string(msg.tipo) + "/" + std::to_string(msg.caldeira) +
-		"/" + msg.id + "/" +
-		"/" + std::to_string(msg.temp) +
-		"/" + std::to_string(msg.vel) +
-		"/" + std::to_string(msg.tempo.wHour) +
-		":" + std::to_string(msg.tempo.wMinute) +
-		":" + std::to_string(msg.tempo.wSecond) +
-		":" + std::to_string(msg.tempo.wMilliseconds);
+	strncat(mensagem, msg.nseq, 5);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.tipo, 2);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.caldeira, 2);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.id, 8);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.tempInt, 3);
+	strncat(mensagem, ".", 1);
+	strncat(mensagem, msg.tempDec, 1);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, msg.velInt, 3);
+	strncat(mensagem, ".", 1);
+	strncat(mensagem, msg.velDec, 1);
+	strncat(mensagem, "/", 1);
+	strncat(mensagem, to_string(now.wHour).c_str(), 2);
+	strncat(mensagem, ":", 1);
+	strncat(mensagem, to_string(now.wMinute).c_str(), 2);
+	strncat(mensagem, ":", 1);
+	strncat(mensagem, to_string(now.wSecond).c_str(), 2);
+	strncat(mensagem, ":", 1);
+	strncat(mensagem, to_string(now.wMilliseconds).c_str(), 3);
 
-	char* ch_prt = (char*)calloc(msg_str.length() + 1, sizeof(char*));
-	std::strcpy(ch_prt, msg_str.c_str());
-
-	return ch_prt;
+	return (char*)mensagem;
 }
