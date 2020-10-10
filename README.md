@@ -1,5 +1,10 @@
 # steel-data-ingestion
 
+## Programadores:
+
+ - Lucas Neves Lima
+ - Beatriz Inácio de Oliveira
+
 ## Descrição:
 
 Software multithread responsável pela leitura de dados deste sistema de inspeção de defeitos, apresentando-os adequadamente em dois terminais de vídeo, sendo um na sala de controle da laminação e outro no centro de pesquisas. O primeiro destes terminais apresentará dados do processo de laminação, de interesse apenas para fins de controle e supervisão do processo, ao passo que o segundo terminal é dedicado para análise dos defeitos superficiais nas tiras de aço de forma a identificar suas causas e a execução de medidas para eliminar  os mesmos.
@@ -11,6 +16,7 @@ Software multithread responsável pela leitura de dados deste sistema de inspeç
 ## Bibliotecas:
 
 * API Win 32
+* MessageGenerate(biblioteca criada por nós para gerar as mensagens do sistema)
 
 ## Tarefas:
 
@@ -31,6 +37,30 @@ referentes ao processo de laminação e as exibe no terminal de vídeo na sala d
 
 6. Tarefa de leitura do teclado. Esta tarefa dá tratamento aos comandos digitados pelo operador. 
 
+## Threads:
+
+ A aplicação(processo) principal conta com 4 threads. 
+
+ *main: A thread principal que incia as outra e faz a leitura do teclado
+ para os eventos de interrupção.
+
+ *h_Thread1: A thread que produz os dados, ela chama a função que gera as mensagens e as insere na fila com período 1000ms.
+ 
+ *h_Thread2: A thread 2 é a thread responsavel por consumir mensagens do tipo 11.
+
+ *h_Thread3: A thread 3 é responsael por consumir mensagens do tipo 22.
+
+## Processos:
+
+Temos 3 processos que executam na nossa solução, o principal que inicia as threads criadas e funcionais até agora.
+e 2 processos secundários para a futura inplementação do display de informações.
+
+## Arquiteturas:
+
+A arquitetura escolhida é a de uma solução com 3 projetos que contém arquivos de código escritos de forma sequêncial.
+
+[Thread principal] -----> { [Thread Leitura de erro], [Thread Leitura de mensagens]  }
+
 ## Console:
 
 O console imprime as mensagens de consumo e depósito de mensagens, além de um contador que indica quantas posições estao livres na lista.
@@ -40,5 +70,5 @@ O console imprime as mensagens de consumo e depósito de mensagens, além de um 
 - "1" : pausa consumo das mensagens do tipo 11. Mandando o comando "1" novamente, o consumo de mensagens do tipo 11 é retomado.
 - "2" : pausa consumo das mensagens do tipo 22. Mandando o comando "2" novamente, o consumo de mensagens do tipo 22 é retomado.
 
-
+## WIP
  
