@@ -40,19 +40,6 @@ DWORD WINAPI CapturaDeMensagensTipo22();
 
 int main(char args[]) {
 
-	setlocale(LC_ALL, "Portuguese");
-
-	while (true) {
-		cout << "--------------------------------------------------------" << endl;
-		cout << "|              PROGRAMA STEEL DATA INJECTION           |" << endl;
-		cout << "--------------------------------------------------------" << endl;
-		cout << "[i] Iniciar o programa: " << endl;
-		cout << "* Durante a execução do programa, digite '1' para \nencerrar o funcionamento da thread consumidora \nde mensagens do tipo 11, digite novamente para voltar o consumo" << endl;
-		cout << "* Durante a execução do programa, digite '2' para \nencerrar o funcionamento da thread consumidora \nde mensagens do tipo 22, digite novamente para voltar o consumo" << endl;
-		int c;
-		cin >> c;
-	}
-
 	STARTUPINFO siDataDisplay;				    // StartUpInformation para novo processo
 	PROCESS_INFORMATION ProcessDataDisplay;	// Informações sobre novo processo criado
 
