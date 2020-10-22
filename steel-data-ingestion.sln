@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "steel-data-ingestion", "Project1\Project1.vcxproj", "{53DFE64B-4634-4C8D-AA78-E3122E447746}"
+	ProjectSection(ProjectDependencies) = postProject
+		{89F74085-0A9A-49A8-AE2B-C6B27C56F3FF} = {89F74085-0A9A-49A8-AE2B-C6B27C56F3FF}
+		{93C745BE-D010-46D6-9900-D84EBD255894} = {93C745BE-D010-46D6-9900-D84EBD255894}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcessDataDisplay", "ProcessDataDisplay\ProcessDataDisplay.vcxproj", "{93C745BE-D010-46D6-9900-D84EBD255894}"
 EndProject

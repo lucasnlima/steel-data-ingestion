@@ -141,10 +141,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CatchProcessData.cpp" />
-    <ClCompile Include="CatchStripDefect.cpp" />
-    <ClCompile Include="DefectInspectionSysRead.cpp" />
-    <ClCompile Include="KeyboardRead.cpp" />
     <ClCompile Include="MessageGenerate.cpp" />
     <ClCompile Include="SteelDataInjection.cpp" />
   </ItemGroup>

@@ -28,15 +28,22 @@ LONG semCount22;
 HANDLE hSemaphoreLVazia;
 HANDLE hSemaphoreLCheiaTipo11;
 HANDLE hSemaphoreLCheiaTipo22;
+HANDLE hSemaphorePipe;
 HANDLE hMutexLista;
 HANDLE hMutexVarLista;
 HANDLE hEventPausa11;
 HANDLE hEventPausa22;
+HANDLE hFile;
 
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
 DWORD WINAPI CapturaDeMensagensTipo22();
+
+DWORD dwBytesRead;
+LPDWORD dwBytesWritten;
+DWORD dwRegLength;
+HANDLE hPipe;
 
 int main(char args[]) {
 
@@ -55,6 +62,8 @@ int main(char args[]) {
 	ZeroMemory(&siDefectDisplay, sizeof(siDefectDisplay));
 	siDefectDisplay.cb = sizeof(siDefectDisplay);
 	ZeroMemory(&StripDefectDisplay, sizeof(StripDefectDisplay));
+
+	hSemaphorePipe = CreateSemaphore(NULL, 0, 1, "SemPipe");
 
 
 	if (!CreateProcess("..\\ProcessDataDisplay.exe", 
@@ -170,19 +179,36 @@ int main(char args[]) {
 }
 
 DWORD WINAPI CapturaDeMensagensTipo11() {
+
+	WaitForSingleObject(hSemaphorePipe, INFINITE); // usar o waitnamedpipe
+	hPipe = CreateFile(
+		"\\\\.\\pipe\\PipeMensagem",
+		GENERIC_WRITE,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+
 	while (true) {
 		WaitForSingleObject(hEventPausa11, INFINITE);  
 		WaitForSingleObject(hMutexLista, INFINITE);
 		WaitForSingleObject(hSemaphoreLCheiaTipo11, INFINITE);
 		for (i = 0; i < 200; i++) {			
 			if (listaMensagens[i].find("\/11\/", 0) != string::npos) {
-				std::cout << "[CONSUMIDA MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;
-				//Função do processo de display que exibe na tela a
-				//string
+				std::cout << "[CONSUMIDA MENSAGEM TIPO 11]: " << listaMensagens[i] << endl;			
+			
+				if (WaitNamedPipe("\\\\.\\pipe\\PipeMensagem", NMPWAIT_USE_DEFAULT_WAIT) == 0) {
+					cout << "Esperando por uma instancia do pipe..." << endl;
+				}
+
+				int status = WriteFile(hPipe, listaMensagens[i].c_str(), sizeof(char)*(listaMensagens[i].length() + 1), dwBytesWritten, NULL);
+				cout << GetLastError() << endl;
+
 				listaMensagens[i] = "";
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				++listCount;
-				//cout << "[--- COUNT]: " << listCount << endl;
 				ReleaseMutex(hMutexVarLista);				
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);	
 				break;
@@ -195,6 +221,22 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 
 	// criar um mutex pros consumidores
 DWORD WINAPI CapturaDeMensagensTipo22() {
+
+	DWORD nOut;
+	char msgToFile[46] = "alou amigos \n";
+	string msg;
+	int linhasArquivo = 0;
+
+	hFile = CreateFile("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Dados.txt",
+		GENERIC_WRITE,
+		0,
+		NULL,
+		OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+
+
 	while (true) {	
 		WaitForSingleObject(hEventPausa22, INFINITE);
 		WaitForSingleObject(hMutexLista, INFINITE);
@@ -202,11 +244,29 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 		for (j = 0; j < 200; j++) {			
 			if (listaMensagens[j].find("\/22\/", 0) != string::npos) {
 				cout << "[CONSUMIDA MENSAGEM TIPO 22]: " << listaMensagens[j] << endl;
+
+				ZeroMemory(msgToFile, sizeof(msgToFile));
+				
+				msg = listaMensagens[j] + "\n";				
+				strcpy(msgToFile, msg.c_str());
+				
+				if (linhasArquivo == 100) {
+					linhasArquivo = 0;
+				}
+				else {
+					linhasArquivo++;
+				}
+
+				//LockFile()
+
+				WriteFile(hFile, msgToFile, 46, &nOut, NULL);				
+				
+				//UnlockFile()
+				
 				listaMensagens[j] = "";
 				
 				WaitForSingleObject(hMutexVarLista, INFINITE);
 				++listCount;
-				//cout << "[--- COUNT]: " << listCount << endl;
 				ReleaseMutex(hMutexVarLista);				
 				ReleaseSemaphore(hSemaphoreLVazia, 1, &semCount);
 				break;
@@ -214,6 +274,8 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 		}
 		ReleaseMutex(hMutexLista);		
 	}
+
+	CloseHandle(hFile);
 	return 0;
 }
 
