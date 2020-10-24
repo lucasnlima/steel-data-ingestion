@@ -22,6 +22,7 @@ vector<string> splitMessage(string message) {
 	return result;
 }
 
+
 int main() {
 
 	SetConsoleTitle("Exibicao de Dados");
@@ -29,28 +30,20 @@ int main() {
 	HANDLE hSemArquivoAtualizado;
 	HANDLE hFile;
 	HANDLE hPipe;
-	HANDLE hEventPauseProcessDisplay;
 	DWORD dwBytesRead = 0;
 	BOOL bStatus;
 	LONG filePos = 0L;
 	char buffer[46];
 	int linhasArquivo = 0;
 
-	hEventPauseProcessDisplay = OpenEvent(SYNCHRONIZE, FALSE, TEXT("EventPausaProcessDisplay"));
-	if (hEventPauseProcessDisplay == NULL) {
-		cout << "Erro ao abrir o handle de evento. COD: " << GetLastError();
-	}
 	hSemArquivoAtualizado = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemAtArquivo");
-	if (hSemArquivoAtualizado == NULL) {
-		cout << "Erro ao abrir o semaforo. COD: " << GetLastError();
-	}
 	
 	
-	hFile = CreateFile("..\\Dados.txt",
-			GENERIC_READ,
-			FILE_SHARE_READ,
+	hFile = CreateFile("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Dados.txt",
+			GENERIC_READ | GENERIC_WRITE,
+			FILE_SHARE_READ | FILE_SHARE_WRITE,
 			NULL,
-			OPEN_ALWAYS,
+			OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL,
 			NULL
 		);		
@@ -58,12 +51,11 @@ int main() {
 	cout << GetLastError();
 
  	while (true) {
-		WaitForSingleObject(hEventPauseProcessDisplay, INFINITE);
 		ZeroMemory(buffer, 46);
 		vector<string> splittedMessage;
 		WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
 
-		LockFile(hFile, 0, filePos, 46, 0);
+		LockFile(hFile, 0, 0, 4600, 0);
 		if (linhasArquivo == 99) {
 			linhasArquivo = 0;
 			SetFilePointer(hFile, filePos, NULL, FILE_BEGIN);

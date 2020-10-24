@@ -336,7 +336,7 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 
 	hFile = CreateFile("..\\Dados.txt",
 		GENERIC_WRITE,
-		FILE_SHARE_READ,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL,
 		OPEN_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL,
@@ -366,7 +366,7 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 					linhasArquivo++;
 				}
 
-				LockFile(hFile, 0, filePos, 46, 0);
+				LockFile(hFile, 0, 0, 4600, 0);
 				//WaitForSingleObject(hSemaphoreArquivo, INFINITE);
 
 				bStatus = WriteFile(hFile, msgToFile, 46, &nOut, NULL);
