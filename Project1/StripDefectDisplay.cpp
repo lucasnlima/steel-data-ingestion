@@ -22,6 +22,8 @@ vector<string> splitMessage(string message) {
 }
 
 int main() {
+
+	SetConsoleTitle("Exibicao de Defeitos");
 	HANDLE hSemaphorePipe;
 
 	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipe");
@@ -44,10 +46,7 @@ int main() {
 	ReleaseSemaphore(hSemaphorePipe, 1, NULL);
 
 	bStatus = ConnectNamedPipe(hPipe, NULL);
-	if (bStatus) {
-		cout << "cliente conectou com sucesso" << endl;
-	}
-	else {
+	if (!bStatus) {
 		cout << "error";
 	}
 
@@ -57,10 +56,7 @@ int main() {
 
 		splitedMessage = splitMessage(mensagemRecebida);
 
-		if (bStatus) {
-			cout << "leitura feita com sucesso" << endl;
-		}
-		else {
+		if (!bStatus) {			
 			cout << "error";
 		}	
 
