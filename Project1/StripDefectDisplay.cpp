@@ -25,13 +25,19 @@ int main() {
 
 	SetConsoleTitle("Exibicao de Defeitos");
 	HANDLE hSemaphorePipe;
-
-	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipe");
+	HANDLE hEventPauseDefectDisplay;
 	char mensagemRecebida[256];
 	HANDLE hPipe;
 	BOOL bStatus;
 	DWORD dwBytesRead;
 	vector<string> splitedMessage;
+
+	hEventPauseDefectDisplay = OpenEvent(SYNCHRONIZE, FALSE, TEXT("EventPausaDefectDisplay"));
+	if (hEventPauseDefectDisplay == NULL) {
+		cout << "Erro ao abrir o handle de evento. COD: " << GetLastError();
+	}
+	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipe");
+
 
 	hPipe = CreateNamedPipe(
 		"\\\\.\\pipe\\PipeMensagem",
@@ -51,6 +57,8 @@ int main() {
 	}
 
 	while (true) {
+
+		WaitForSingleObject(hEventPauseDefectDisplay, INFINITE);
 
 		bStatus = ReadFile(hPipe, &mensagemRecebida, 256, &dwBytesRead, NULL);
 

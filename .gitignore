@@ -338,3 +338,8 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/Project1/Dados.txt
+/Dados.txt
+/ProcessDataDisplay.exe
+/steel-data-ingestion.exe
+/StreepDefectDisplay.exe
