@@ -40,6 +40,7 @@ HANDLE hEventPausaProcessDisplay;
 HANDLE hFile;
 HANDLE hSemAtualizaArquivo;
 HANDLE hSemAbreArquivo;
+HANDLE hMutexArquivo;
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
@@ -78,6 +79,7 @@ int main(char args[]) {
 
 	hSemaphorePipe = CreateSemaphore(NULL, 0, 1, "SemPipe");
 	hSemAtualizaArquivo = CreateSemaphore(NULL, 0, 1, "SemAtArquivo");
+	hMutexArquivo = CreateMutex(NULL, false, "MutexArquivo");
 
 
 	if (!CreateProcess("..\\ProcessDataDisplay.exe",
@@ -366,17 +368,18 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 					linhasArquivo++;
 				}
 
-				LockFile(hFile, 0, 0, 4600, 0);
+				//LockFile(hFile, 0, 0, 4600, 0);
 				//WaitForSingleObject(hSemaphoreArquivo, INFINITE);
-
+				WaitForSingleObject(hMutexArquivo, INFINITE);
 				bStatus = WriteFile(hFile, msgToFile, 46, &nOut, NULL);
 				if (!bStatus) {
 					cout << GetLastError();
 				}
+				ReleaseMutex(hMutexArquivo);
 
 				//ReleaseSemaphore(hSemaphoreArquivo, 1, NULL);
 
-				UnlockFile(hFile, 0, NULL, 4600, 0);
+				//UnlockFile(hFile, 0, NULL, 4600, 0);
 
 				listaMensagens[j] = "";
 				ReleaseSemaphore(hSemAtualizaArquivo, 1, NULL);

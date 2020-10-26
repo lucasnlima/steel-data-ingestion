@@ -12,6 +12,10 @@ struct MESSAGE_TYPE_1 {
 	char gravidade[2];
 	char classe[1];
 	char idFoto[6];
+	char tHour[2];
+	char tMinute[2];
+	char tSecond[2];
+	char tMilesecond[3];
 	SYSTEMTIME tempo;
 };
 
@@ -24,6 +28,10 @@ struct MESSAGE_TYPE_2 {
 	char tempDec[1];
 	char velInt[3];
 	char velDec[1];
+	char tHour[2];
+	char tMinute[2];
+	char tSecond[2];
+	char tMilesecond[3];
 	SYSTEMTIME tempo;
 };
 
@@ -58,7 +66,7 @@ char* GenerateMessageType1(long index) {
 
 	GetLocalTime(&now);
 	char* mensagem;
-	mensagem = (char*)malloc(36);
+	mensagem = (char*)malloc(37);
 	ZeroMemory(mensagem, sizeof(mensagem));
 	struct MESSAGE_TYPE_1 msg;
 
@@ -69,6 +77,11 @@ char* GenerateMessageType1(long index) {
 	sprintf(msg.gravidade,"%02d",rand()%100);
 	sprintf(msg.classe,"%1d",rand()%10);
 	memcpy(msg.idFoto, GenerateAlphanumeric(),sizeof(msg.idFoto));
+	sprintf(msg.tHour, "%02d", now.wHour);
+	sprintf(msg.tMinute, "%02d", now.wMinute);
+	sprintf(msg.tSecond, "%02d", now.wSecond);
+	sprintf(msg.tMilesecond, "%03d", now.wMilliseconds);
+
 
 	strncat(mensagem, msg.nseq,5);
 	strncat(mensagem, "/", 1);
@@ -82,13 +95,13 @@ char* GenerateMessageType1(long index) {
 	strncat(mensagem, "/", 1);
 	strncat(mensagem, msg.idFoto, 6);
 	strncat(mensagem, "/", 1);
-	strncat(mensagem, to_string(now.wHour).c_str(), 2);
+	strncat(mensagem, msg.tHour, 2);
 	strncat(mensagem, ":", 1);
-	strncat(mensagem, to_string(now.wMinute).c_str(), 2);
+	strncat(mensagem, msg.tMinute, 2);
 	strncat(mensagem, ":", 1);
-	strncat(mensagem, to_string(now.wSecond).c_str(), 2);
+	strncat(mensagem, msg.tSecond, 2);
 	strncat(mensagem, ":", 1);
-	strncat(mensagem, to_string(now.wMilliseconds).c_str(), 3);
+	strncat(mensagem,msg.tMilesecond, 3);
 	
 	return (char*)mensagem;
 }
@@ -98,7 +111,7 @@ char* GenerateMessageType2(long index) {
 
 	GetLocalTime(&now);
 	char* mensagem;
-	mensagem = (char*)malloc(36);
+	mensagem = (char*)malloc(45);
 	ZeroMemory(mensagem, sizeof(mensagem));
 	struct MESSAGE_TYPE_2 msg;
 
@@ -110,6 +123,10 @@ char* GenerateMessageType2(long index) {
 	sprintf(msg.tempDec, "%01d", (rand() % 100));
 	sprintf(msg.velInt, "%03d", (rand() % 1000));
 	sprintf(msg.velDec, "%01d", (rand() % 100));
+	sprintf(msg.tHour, "%02d", now.wHour);
+	sprintf(msg.tMinute, "%02d", now.wMinute);
+	sprintf(msg.tSecond, "%02d", now.wSecond);
+	sprintf(msg.tMilesecond, "%03d", now.wMilliseconds);
 
 	strncat(mensagem, msg.nseq, 5);
 	strncat(mensagem, "/", 1);
@@ -127,13 +144,13 @@ char* GenerateMessageType2(long index) {
 	strncat(mensagem, ".", 1);
 	strncat(mensagem, msg.velDec, 1);
 	strncat(mensagem, "/", 1);
-	strncat(mensagem, to_string(now.wHour).c_str(), 2);
+	strncat(mensagem, msg.tHour, 2);
 	strncat(mensagem, ":", 1);
-	strncat(mensagem, to_string(now.wMinute).c_str(), 2);
+	strncat(mensagem, msg.tMinute, 2);
 	strncat(mensagem, ":", 1);
-	strncat(mensagem, to_string(now.wSecond).c_str(), 2);
+	strncat(mensagem, msg.tSecond, 2);
 	strncat(mensagem, ":", 1);
-	strncat(mensagem, to_string(now.wMilliseconds).c_str(), 3);
+	strncat(mensagem, msg.tMilesecond, 3);
 
 	return (char*)mensagem;
 }

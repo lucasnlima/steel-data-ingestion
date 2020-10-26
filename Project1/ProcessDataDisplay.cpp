@@ -30,6 +30,7 @@ int main() {
 	HANDLE hSemArquivoAtualizado;
 	HANDLE hFile;
 	HANDLE hPipe;
+	HANDLE hMutexArquivo;
 	DWORD dwBytesRead = 0;
 	BOOL bStatus;
 	LONG filePos = 0L;
@@ -37,6 +38,7 @@ int main() {
 	int linhasArquivo = 0;
 
 	hSemArquivoAtualizado = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemAtArquivo");
+	hMutexArquivo = OpenMutex(NULL,true,"MutexArquivo");
 	
 	
 	hFile = CreateFile("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Dados.txt",
@@ -53,9 +55,10 @@ int main() {
  	while (true) {
 		ZeroMemory(buffer, 46);
 		vector<string> splittedMessage;
-		WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
+		//WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
 
-		LockFile(hFile, 0, 0, 4600, 0);
+		//LockFile(hFile, 0, 0, 4600, 0);
+		WaitForSingleObject(hMutexArquivo, INFINITE);
 		if (linhasArquivo == 99) {
 			linhasArquivo = 0;
 			SetFilePointer(hFile, filePos, NULL, FILE_BEGIN);
@@ -67,7 +70,9 @@ int main() {
 		if (!bStatus) {
 			cout << GetLastError();
 		}
-		UnlockFile(hFile, 0, NULL, 4600, 0);
+
+		ReleaseMutex(hMutexArquivo);
+		//UnlockFile(hFile, 0, NULL, 4600, 0);
 		
 		splittedMessage = splitMessage(buffer);
 
