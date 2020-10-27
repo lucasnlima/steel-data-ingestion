@@ -32,53 +32,53 @@ vector<string> splitMessage(string message) {
 }
 
 int WatchKeyboard() {
-//
-//	BOOL bStatus;
-//	DWORD dwBytesRead;
-//	char buffer[1];
-//	HANDLE hSemaphorePipe;
-//	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipeLimpa");
-//	cout << GetLastError();
-//
-//	hPipe = CreateNamedPipe(
-//		"\\\\.\\pipe\\teste",
-//		PIPE_ACCESS_DUPLEX,
-//		PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT,
-//		1,
-//		0,
-//		0,
-//		1000,
-//		NULL
-//	);
-//	int b = GetLastError();
-//	ReleaseSemaphore(hSemaphorePipe, 1, NULL);
-//
-//	bStatus = ConnectNamedPipe(hPipe, NULL);
-//	int a = GetLastError();
-//	if (!bStatus) {
-//		cout << "error";
-//	}
-//
-//	while (true) {
-//
-//		cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-//		bStatus = ReadFile(hPipe, &buffer, 1, &dwBytesRead, NULL);
-//		if (!bStatus) {
-//			cout << "error";
-//		}
-//
-//		cout <<"AAAAAAAAAAAAAAAAAAAAAAAAAAA" << buffer << endl;
-//
-//		if (buffer == "c") {
-//			cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-//			system("cls");
-//
-//		}
-//
-//	}
-//
-//	
-//
+
+	BOOL bStatus;
+	DWORD dwBytesRead;
+	char buffer[1];
+	HANDLE hSemaphorePipe;
+	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipeLimpa");
+	cout << GetLastError();
+
+	hPipe = CreateNamedPipe(
+		"\\\\.\\pipe\\teste",
+		PIPE_ACCESS_DUPLEX,
+		PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT,
+		1,
+		0,
+		0,
+		1000,
+		NULL
+	);
+	int b = GetLastError();
+	ReleaseSemaphore(hSemaphorePipe, 1, NULL);
+
+	bStatus = ConnectNamedPipe(hPipe, NULL);
+	int a = GetLastError();
+	if (!bStatus) {
+		cout << "error";
+	}
+
+	while (true) {
+
+		ZeroMemory(buffer, sizeof(buffer));		
+		bStatus = ReadFile(hPipe, &buffer, 1, &dwBytesRead, NULL);
+		if (!bStatus) {
+			cout << "error";
+		}
+
+		cout <<buffer[0] << endl;
+		string opcao = to_string(buffer[0]);
+
+		if (opcao == "99") {			
+			system("cls");
+
+		}
+
+	}
+
+	
+
 	return 0;
 }
 

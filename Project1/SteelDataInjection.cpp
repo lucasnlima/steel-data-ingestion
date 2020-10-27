@@ -303,11 +303,13 @@ int main(char args[]) {
 			//WaitNamedPipe("\\\\.\\pipe\\teste", NMPWAIT_USE_DEFAULT_WAIT);
 
 
-			status = WriteFile(hPipe, "c", 1, dwBytesWritten, NULL);			
+			status = WriteFile(hPipeLimpa, "c", 1, dwBytesWritten, NULL);
 			if (status != TRUE) {
 				cout << "Erro ao escrever no arquivo COD:" << GetLastError() << endl;
 			}
 			break;
+
+			CloseHandle(hSemaphorePipeLimpa);
 
 		default:
 			gotoxy(19, 13);
