@@ -83,7 +83,7 @@ int main(char args[]) {
 	hSemaphorePipeLimpa = CreateSemaphore(NULL, 0, 1, "SemPipeLimpa");
 	hSemAtualizaArquivo = CreateSemaphore(NULL, 0, 1, "SemAtArquivo");
 	hMutexArquivo = CreateSemaphore(NULL, 0, 1, "MutexArquivo");
-	cout << "ERRO PRA ABRIR: " << GetLastError();
+
 
 	if (!CreateProcess("..\\ProcessDataDisplay.exe",
 		NULL,
@@ -174,6 +174,18 @@ int main(char args[]) {
 	bool eventPausaInspect = false;
 	bool eventPausaDisplayDefect = false;
 	bool eventPausaProcessDisplay = false;
+
+	int ssstatus;
+	ssstatus = WaitForSingleObject(hSemaphorePipeLimpa, INFINITE);
+	hPipeLimpa = CreateFile(
+		"\\\\.\\pipe\\teste",
+		GENERIC_WRITE,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
 
 	std::cout << "________________________________________________________________\n" <<
 		"                   Steel Data Injection  v2.0             \n" <<
@@ -288,17 +300,7 @@ int main(char args[]) {
 			gotoxy(19, 13);
 
 
-			int ssstatus;
-			ssstatus = WaitForSingleObject(hSemaphorePipeLimpa, INFINITE);
-			hPipeLimpa = CreateFile(
-				"\\\\.\\pipe\\teste",
-				GENERIC_WRITE,
-				FILE_SHARE_READ,
-				NULL,
-				OPEN_EXISTING,
-				FILE_ATTRIBUTE_NORMAL,
-				NULL
-			);
+			
 
 			//WaitNamedPipe("\\\\.\\pipe\\teste", NMPWAIT_USE_DEFAULT_WAIT);
 
