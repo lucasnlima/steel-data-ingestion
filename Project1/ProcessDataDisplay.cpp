@@ -1,10 +1,19 @@
 #include <iostream>
-#include <string>
-#include <Windows.h>
 #include <stdio.h>
+#include <process.h>
+#include <windows.h>
 #include <vector>
+#include <time.h>
+#include <string>
+#include "CheckForError.h"
+#include "CatchProcessData.h"
+#include "MessageGenerate.h"
+#include <locale>
 
 using namespace std;
+typedef unsigned (WINAPI* CAST_FUNCTION)(LPVOID);
+
+HANDLE hPipe;
 
 vector<string> splitMessage(string message) {
 	string delimiter = "/";
@@ -17,9 +26,60 @@ vector<string> splitMessage(string message) {
 		message.erase(0, pos + delimiter.length());
 		result.push_back(token);
 	}
-	
+
 	result.push_back(message.substr(0, 11));
 	return result;
+}
+
+int WatchKeyboard() {
+//
+//	BOOL bStatus;
+//	DWORD dwBytesRead;
+//	char buffer[1];
+//	HANDLE hSemaphorePipe;
+//	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipeLimpa");
+//	cout << GetLastError();
+//
+//	hPipe = CreateNamedPipe(
+//		"\\\\.\\pipe\\teste",
+//		PIPE_ACCESS_DUPLEX,
+//		PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT,
+//		1,
+//		0,
+//		0,
+//		1000,
+//		NULL
+//	);
+//	int b = GetLastError();
+//	ReleaseSemaphore(hSemaphorePipe, 1, NULL);
+//
+//	bStatus = ConnectNamedPipe(hPipe, NULL);
+//	int a = GetLastError();
+//	if (!bStatus) {
+//		cout << "error";
+//	}
+//
+//	while (true) {
+//
+//		cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+//		bStatus = ReadFile(hPipe, &buffer, 1, &dwBytesRead, NULL);
+//		if (!bStatus) {
+//			cout << "error";
+//		}
+//
+//		cout <<"AAAAAAAAAAAAAAAAAAAAAAAAAAA" << buffer << endl;
+//
+//		if (buffer == "c") {
+//			cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
+//			system("cls");
+//
+//		}
+//
+//	}
+//
+//	
+//
+	return 0;
 }
 
 
@@ -27,38 +87,54 @@ int main() {
 
 	SetConsoleTitle("Exibicao de Dados");
 
+	unsigned int Thread4Id;
+
+
+	HANDLE h_Thread4 = (HANDLE)_beginthreadex(
+		NULL,
+		0,
+		(CAST_FUNCTION)WatchKeyboard,	// casting necessário
+		NULL,
+		0,
+		&Thread4Id
+	);
+
 	HANDLE hSemArquivoAtualizado;
 	HANDLE hFile;
-	HANDLE hPipe;
 	HANDLE hMutexArquivo;
 	DWORD dwBytesRead = 0;
 	BOOL bStatus;
+	BOOL MutexStatus;
 	LONG filePos = 0L;
+
 	char buffer[46];
 	int linhasArquivo = 0;
+	hMutexArquivo = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "MutexArquivo");
+	cout << "ERRO AO ABRIR O SEMAFORO: " << GetLastError() << endl;
+
 
 	hSemArquivoAtualizado = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemAtArquivo");
-	hMutexArquivo = OpenMutex(NULL,true,"MutexArquivo");
-	
-	
+
+
 	hFile = CreateFile("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Dados.txt",
-			GENERIC_READ | GENERIC_WRITE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE,
-			NULL,
-			OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,
-			NULL
-		);		
+		GENERIC_READ | GENERIC_WRITE,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
 
 	cout << GetLastError();
 
- 	while (true) {
+	while (true) {
 		ZeroMemory(buffer, 46);
 		vector<string> splittedMessage;
-		//WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
+		WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
 
+		//WaitForSingleObject(hMutexArquivo, INFINITE);
+		Sleep(1000);
 		//LockFile(hFile, 0, 0, 4600, 0);
-		WaitForSingleObject(hMutexArquivo, INFINITE);
 		if (linhasArquivo == 99) {
 			linhasArquivo = 0;
 			SetFilePointer(hFile, filePos, NULL, FILE_BEGIN);
@@ -70,10 +146,9 @@ int main() {
 		if (!bStatus) {
 			cout << GetLastError();
 		}
-
-		ReleaseMutex(hMutexArquivo);
 		//UnlockFile(hFile, 0, NULL, 4600, 0);
-		
+		ReleaseSemaphore(hMutexArquivo, 1, NULL);
+
 		splittedMessage = splitMessage(buffer);
 
 		if (splittedMessage.size() == 7) {
@@ -88,6 +163,14 @@ int main() {
 
 	}
 
-	
+
 
 }
+
+
+
+
+
+
+
+

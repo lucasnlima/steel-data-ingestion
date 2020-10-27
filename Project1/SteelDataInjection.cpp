@@ -29,6 +29,8 @@ HANDLE hSemaphoreLVazia;
 HANDLE hSemaphoreLCheiaTipo11;
 HANDLE hSemaphoreLCheiaTipo22;
 HANDLE hSemaphorePipe;
+HANDLE hSemaphorePipeLimpa;
+HANDLE hPipeLimpa;
 HANDLE hSemaphoreArquivo;
 HANDLE hMutexLista;
 HANDLE hMutexVarLista;
@@ -78,9 +80,10 @@ int main(char args[]) {
 	ZeroMemory(&StripDefectDisplay, sizeof(StripDefectDisplay));
 
 	hSemaphorePipe = CreateSemaphore(NULL, 0, 1, "SemPipe");
+	hSemaphorePipeLimpa = CreateSemaphore(NULL, 0, 1, "SemPipeLimpa");
 	hSemAtualizaArquivo = CreateSemaphore(NULL, 0, 1, "SemAtArquivo");
-	hMutexArquivo = CreateMutex(NULL, false, "MutexArquivo");
-
+	hMutexArquivo = CreateSemaphore(NULL, 0, 1, "MutexArquivo");
+	cout << "ERRO PRA ABRIR: " << GetLastError();
 
 	if (!CreateProcess("..\\ProcessDataDisplay.exe",
 		NULL,
@@ -159,6 +162,10 @@ int main(char args[]) {
 		&Thread3Id
 	);
 
+
+	int status;
+
+
 	//---Aguarda leitura do teclada
 	char a = 0;
 	int logcount = 0;
@@ -180,9 +187,9 @@ int main(char args[]) {
 		"  <c> Set/Reset Limpar janela de exibicao de dados do processo.\n" <<
 		"  <ESC> Finalizar aplicacao.\n\n" <<
 		" Escolha uma opcao:";
-		gotoxy(0, 15);
-		std::cout << "[LOG DE COMANDOS INSERIDOS]" << endl;
-		gotoxy(19, 13);
+	gotoxy(0, 15);
+	std::cout << "[LOG DE COMANDOS INSERIDOS]" << endl;
+	gotoxy(19, 13);
 
 	while (a != 32) {
 		cin >> a;
@@ -192,7 +199,7 @@ int main(char args[]) {
 			eventPausaInspect = !eventPausaInspect;
 			if (eventPausaInspect) {
 				logcount += 1;
-				gotoxy(1, 16+logcount);
+				gotoxy(1, 16 + logcount);
 				std::cout << logcount << " - Pausa Inspecao de defeitos" << endl;
 				gotoxy(19, 13);
 				ResetEvent(hEventPausaInspect);
@@ -236,6 +243,7 @@ int main(char args[]) {
 				gotoxy(1, 16 + logcount);
 				std::cout << logcount << " - Continua captura de mensagens tipo 22" << endl;
 				gotoxy(19, 13);
+				ReleaseMutex(hMutexArquivo);
 				SetEvent(hEventPausa22);
 			}
 			break;
@@ -273,6 +281,34 @@ int main(char args[]) {
 				SetEvent(hEventPausaProcessDisplay);
 			}
 			break;
+		case 99:
+			logcount += 1;
+			gotoxy(1, 16 + logcount);
+			std::cout << logcount << " - Limpa a tela do processo de exibição" << endl;
+			gotoxy(19, 13);
+
+
+			int ssstatus;
+			ssstatus = WaitForSingleObject(hSemaphorePipeLimpa, INFINITE);
+			hPipeLimpa = CreateFile(
+				"\\\\.\\pipe\\teste",
+				GENERIC_WRITE,
+				FILE_SHARE_READ,
+				NULL,
+				OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL,
+				NULL
+			);
+
+			//WaitNamedPipe("\\\\.\\pipe\\teste", NMPWAIT_USE_DEFAULT_WAIT);
+
+
+			status = WriteFile(hPipe, "c", 1, dwBytesWritten, NULL);			
+			if (status != TRUE) {
+				cout << "Erro ao escrever no arquivo COD:" << GetLastError() << endl;
+			}
+			break;
+
 		default:
 			gotoxy(19, 13);
 			break;
@@ -328,7 +364,7 @@ DWORD WINAPI CapturaDeMensagensTipo11() {
 
 // criar um mutex pros consumidores
 DWORD WINAPI CapturaDeMensagensTipo22() {
-
+	ReleaseSemaphore(hMutexArquivo, 1, NULL);
 	DWORD nOut;
 	char msgToFile[46] = "";
 	string msg;
@@ -347,6 +383,7 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 
 
 	while (true) {
+
 		WaitForSingleObject(hEventPausa22, INFINITE);
 		WaitForSingleObject(hMutexLista, INFINITE);
 		WaitForSingleObject(hSemaphoreLCheiaTipo22, INFINITE);
@@ -369,13 +406,14 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 				}
 
 				//LockFile(hFile, 0, 0, 4600, 0);
-				//WaitForSingleObject(hSemaphoreArquivo, INFINITE);
 				WaitForSingleObject(hMutexArquivo, INFINITE);
+
 				bStatus = WriteFile(hFile, msgToFile, 46, &nOut, NULL);
 				if (!bStatus) {
 					cout << GetLastError();
 				}
-				ReleaseMutex(hMutexArquivo);
+
+				ReleaseSemaphore(hMutexArquivo, 1, NULL);
 
 				//ReleaseSemaphore(hSemaphoreArquivo, 1, NULL);
 
@@ -433,7 +471,7 @@ DWORD WINAPI CatchProcessData() {
 
 			listaMensagens[currentIndex] = msg1;
 			//cout << "[DEPOSITADA MENSAGEM TIPO 11]: " << msg1 << endl;
-						
+
 			currentNSEQTipo1++;
 			currentIndex++;
 			if (currentIndex == 200) currentIndex = 0;
@@ -445,7 +483,7 @@ DWORD WINAPI CatchProcessData() {
 			//if (--listCount == 0) {
 			//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
 			//}
-			
+
 			ReleaseMutex(hMutexVarLista);
 			WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 			listaMensagens[currentIndex] = msg2;
@@ -455,7 +493,7 @@ DWORD WINAPI CatchProcessData() {
 			currentIndex++;
 			if (currentIndex == 200) currentIndex = 0;
 			ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
-			Sleep(1000);
+			Sleep(500);
 		}
 
 	}
