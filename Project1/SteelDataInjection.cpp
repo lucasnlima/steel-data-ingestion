@@ -9,8 +9,13 @@
 #include "CatchProcessData.h"
 #include "MessageGenerate.h"
 #include <locale>
+#include <conio.h>
+
 
 #define MAX_POSICOES 200
+#define _WIN32_WINNT 0X0400
+#define ESCAPE 27
+
 
 typedef unsigned (WINAPI* CAST_FUNCTION)(LPVOID);
 
@@ -43,6 +48,8 @@ HANDLE hFile;
 HANDLE hSemAtualizaArquivo;
 HANDLE hSemAbreArquivo;
 HANDLE hMutexArquivo;
+HANDLE hWaitMsg11;
+HANDLE hWaitMsg22;
 
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
@@ -56,6 +63,29 @@ HANDLE hPipe;
 void gotoxy(int x, int y) {
 	COORD c = { x, y };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+
+void CloseHandles() {
+	CloseHandle(hSemaphoreLVazia);
+	CloseHandle(hSemaphoreLCheiaTipo11);
+	CloseHandle(hSemaphoreLCheiaTipo22);
+	CloseHandle(hSemaphorePipe);
+	CloseHandle(hSemaphorePipeLimpa);
+	CloseHandle(hPipeLimpa);
+	CloseHandle(hSemaphoreArquivo);
+	CloseHandle(hMutexLista);
+	CloseHandle(hMutexVarLista);
+	CloseHandle(hEventPausa11);
+	CloseHandle(hEventPausa22);
+	CloseHandle(hEventPausaInspect);
+	CloseHandle(hEventPausaDefectDisplay);
+	CloseHandle(hEventPausaProcessDisplay);
+	CloseHandle(hFile);
+	CloseHandle(hSemAtualizaArquivo);
+	CloseHandle(hSemAbreArquivo);
+	CloseHandle(hMutexArquivo);
+	CloseHandle(hWaitMsg11);
+	CloseHandle(hWaitMsg22);
 }
 
 int main(char args[]) {
@@ -133,7 +163,12 @@ int main(char args[]) {
 	hEventPausaDefectDisplay = CreateEvent(NULL, true, true, TEXT("EventPausaDefectDisplay"));
 	hEventPausaProcessDisplay = CreateEvent(NULL, true, true, TEXT("EventPausaProcessDisplay"));
 
+	////--Inicialização dos waitable timers
+	//hWaitMsg11 = CreateWaitableTimer(NULL, FALSE, "WaitMsg11");
+	//hWaitMsg22 = CreateWaitableTimer(NULL, TRUE, "WaitMsg22");
 
+
+	//-- Inicia as threads secudarias do processo princiapl
 	HANDLE h_Thread1 = (HANDLE)_beginthreadex(
 		NULL,
 		0,
@@ -161,6 +196,15 @@ int main(char args[]) {
 		0,
 		&Thread3Id
 	);
+
+
+
+	////--Dispara os temporizadores
+	//LARGE_INTEGER dueTime;
+
+	//dueTime.QuadPart = -1000;
+
+	//SetWaitableTimer(hWaitMsg11, &dueTime, 1000*(rand()%10), NULL,NULL, FALSE);
 
 
 	int status;
@@ -203,8 +247,9 @@ int main(char args[]) {
 	std::cout << "[LOG DE COMANDOS INSERIDOS]" << endl;
 	gotoxy(19, 13);
 
-	while (a != 32) {
-		cin >> a;
+	while (TRUE) {
+		//a = cin.get();
+		a = _getch();
 		switch (a)
 		{
 		case 105:
@@ -299,18 +344,20 @@ int main(char args[]) {
 			std::cout << logcount << " - Limpa a tela do processo de exibição" << endl;
 			gotoxy(19, 13);
 
-
-			
-
-			//WaitNamedPipe("\\\\.\\pipe\\teste", NMPWAIT_USE_DEFAULT_WAIT);
-
-
 			status = WriteFile(hPipeLimpa, "c", 1, dwBytesWritten, NULL);
 			if (status != TRUE) {
 				cout << "Erro ao escrever no arquivo COD:" << GetLastError() << endl;
 			}
-			break;			
-
+			break;
+		case 27:
+				logcount += 1;
+				gotoxy(1, 16 + logcount);
+				std::cout << logcount << " - Finalizando aplicação..." << endl;
+				CloseHandles();
+				TerminateProcess(ProcessDataDisplay.hProcess,0);
+				TerminateProcess(StripDefectDisplay.hProcess,0);
+				ExitProcess(0);
+			break;
 		default:
 			gotoxy(19, 13);
 			break;
@@ -440,9 +487,16 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 
 DWORD WINAPI CatchProcessData() {
 
+
 	while (true)
 	{
 
+		clock_t tick;
+		double tempo = 0;
+		int maior = 2000;
+		int menor = 100;
+		double reference = (double)(rand() % (maior - menor + 1) + menor);
+		tick = clock();
 		int a = 0;
 		int currentNSEQTipo1 = 1;
 		int currentNSEQTipo2 = 1;
@@ -452,50 +506,61 @@ DWORD WINAPI CatchProcessData() {
 		while (true) {
 
 			WaitForSingleObject(hEventPausaInspect, INFINITE);
+			
+			tempo = (clock() - tick) * 1000 / CLOCKS_PER_SEC;
+			
+			
+			
+				if (currentIndex == 200) {
+					//cout << "lista cheia";
+					currentIndex = 0;
+					ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+				}
+			if (tempo >= reference) {
 
-			if (currentIndex == 200) {
-				//cout << "lista cheia";
-				currentIndex = 0;
-				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+				msg1 = GenerateMessageType1(currentNSEQTipo1);
+
+				WaitForSingleObject(hMutexVarLista, INFINITE);
+				//if (--listCount == 0) {
+				//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
+				//}
+				//else {
+				//	//cout << "[--- COUNT]: " << listCount << endl;
+				//}
+				ReleaseMutex(hMutexVarLista);
+				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+
+				listaMensagens[currentIndex] = msg1;
+				//cout << "[DEPOSITADA MENSAGEM TIPO 11]: " << msg1 << endl;
+				
+
+				currentNSEQTipo1++;
+				currentIndex++;
+				reference = (double)(rand() % (maior - menor + 1) + menor);
+				tick = clock();
 			}
+				if (currentIndex == 200) currentIndex = 0;
+				ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
 
-			msg1 = GenerateMessageType1(currentNSEQTipo1);
+				
 
-			WaitForSingleObject(hMutexVarLista, INFINITE);
-			//if (--listCount == 0) {
-			//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-			//}
-			//else {
-			//	//cout << "[--- COUNT]: " << listCount << endl;
-			//}
-			ReleaseMutex(hMutexVarLista);
-			WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+			if (tempo == 500) {
+				msg2 = GenerateMessageType2(currentNSEQTipo2);
+				WaitForSingleObject(hMutexVarLista, INFINITE);
+				//if (--listCount == 0) {
+				//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
+				//}
 
-			listaMensagens[currentIndex] = msg1;
-			//cout << "[DEPOSITADA MENSAGEM TIPO 11]: " << msg1 << endl;
+				ReleaseMutex(hMutexVarLista);
+				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+				listaMensagens[currentIndex] = msg2;
+				//cout << "[DEPOSITADA MENSAGEM TIPO 22]: " << msg2 << endl;
 
-			currentNSEQTipo1++;
-			currentIndex++;
-			if (currentIndex == 200) currentIndex = 0;
-			ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
-
-
-			msg2 = GenerateMessageType2(currentNSEQTipo2);
-			WaitForSingleObject(hMutexVarLista, INFINITE);
-			//if (--listCount == 0) {
-			//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-			//}
-
-			ReleaseMutex(hMutexVarLista);
-			WaitForSingleObject(hSemaphoreLVazia, INFINITE);
-			listaMensagens[currentIndex] = msg2;
-			//cout << "[DEPOSITADA MENSAGEM TIPO 22]: " << msg2 << endl;
-
-			currentNSEQTipo2++;
-			currentIndex++;
-			if (currentIndex == 200) currentIndex = 0;
-			ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
-			Sleep(500);
+				currentNSEQTipo2++;
+				currentIndex++;
+			}
+				if (currentIndex == 200) currentIndex = 0;
+				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
 		}
 
 	}
