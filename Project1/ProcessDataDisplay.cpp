@@ -61,23 +61,23 @@ int WatchKeyboard() {
 
 	while (true) {
 
-		ZeroMemory(buffer, sizeof(buffer));		
+		ZeroMemory(buffer, sizeof(buffer));
 		bStatus = ReadFile(hPipe, &buffer, 1, &dwBytesRead, NULL);
 		if (!bStatus) {
 			cout << "error";
 		}
 
-		cout <<buffer[0] << endl;
+		cout << buffer[0] << endl;
 		string opcao = to_string(buffer[0]);
 
-		if (opcao == "99") {			
+		if (opcao == "99") {
 			system("cls");
 
 		}
 
 	}
 
-	
+
 
 	return 0;
 }
@@ -166,11 +166,3 @@ int main() {
 
 
 }
-
-
-
-
-
-
-
-
