@@ -116,7 +116,7 @@ int main() {
 	hSemArquivoAtualizado = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemAtArquivo");
 
 
-	hFile = CreateFile("D:\\Users\\beatr\\Documents\\Faculdade\\6 Periodo\\Automação em Tempo Real\\steel-data-ingestion\\Dados.txt",
+	hFile = CreateFile("..\\Dados.txt",
 		GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL,

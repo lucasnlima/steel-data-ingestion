@@ -309,9 +309,7 @@ int main(char args[]) {
 			if (status != TRUE) {
 				cout << "Erro ao escrever no arquivo COD:" << GetLastError() << endl;
 			}
-			break;
-
-			CloseHandle(hSemaphorePipeLimpa);
+			break;			
 
 		default:
 			gotoxy(19, 13);
