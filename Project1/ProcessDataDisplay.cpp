@@ -100,6 +100,7 @@ int main() {
 	);
 
 	HANDLE hSemArquivoAtualizado;
+	HANDLE hEventPauseProcessDisplay;
 	HANDLE hFile;
 	HANDLE hMutexArquivo;
 	DWORD dwBytesRead = 0;
@@ -115,6 +116,12 @@ int main() {
 
 	hSemArquivoAtualizado = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemAtArquivo");
 
+	hEventPauseProcessDisplay = OpenEvent(SYNCHRONIZE, FALSE, TEXT("EventPausaProcessDisplay"));
+	if (hEventPauseProcessDisplay == NULL) {
+		cout << "Erro ao abrir o handle de evento. COD: " << GetLastError();
+	}
+
+
 
 	hFile = CreateFile("..\\Dados.txt",
 		GENERIC_READ | GENERIC_WRITE,
@@ -128,6 +135,8 @@ int main() {
 	cout << GetLastError();
 
 	while (true) {
+		WaitForSingleObject(hEventPauseProcessDisplay, INFINITE);
+		WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
 		ZeroMemory(buffer, 46);
 		vector<string> splittedMessage;
 		WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
