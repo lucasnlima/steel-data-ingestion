@@ -10,6 +10,7 @@
 #include "MessageGenerate.h"
 #include <locale>
 #include <conio.h>
+#include <synchapi.h>
 
 
 #define MAX_POSICOES 200
@@ -54,6 +55,9 @@ HANDLE hWaitMsg22;
 DWORD WINAPI CatchProcessData();
 DWORD WINAPI CapturaDeMensagensTipo11();
 DWORD WINAPI CapturaDeMensagensTipo22();
+DWORD WINAPI Generate11();
+DWORD WINAPI Generate22();
+
 
 DWORD dwBytesRead;
 LPDWORD dwBytesWritten;
@@ -89,7 +93,6 @@ void CloseHandles() {
 }
 
 int main(char args[]) {
-	//setlocale(LC_ALL, "utf-8");
 
 	SetConsoleTitle("Processo Principal");
 
@@ -163,9 +166,9 @@ int main(char args[]) {
 	hEventPausaDefectDisplay = CreateEvent(NULL, true, true, TEXT("EventPausaDefectDisplay"));
 	hEventPausaProcessDisplay = CreateEvent(NULL, true, true, TEXT("EventPausaProcessDisplay"));
 
-	////--Inicialização dos waitable timers
-	//hWaitMsg11 = CreateWaitableTimer(NULL, FALSE, "WaitMsg11");
-	//hWaitMsg22 = CreateWaitableTimer(NULL, TRUE, "WaitMsg22");
+	//--Inicialização dos waitable timers
+	hWaitMsg11 = CreateWaitableTimer(NULL, FALSE, "WaitMsg11");
+	hWaitMsg22 = CreateWaitableTimer(NULL, FALSE, "WaitMsg22");
 
 
 	//-- Inicia as threads secudarias do processo princiapl
@@ -199,12 +202,13 @@ int main(char args[]) {
 
 
 
-	////--Dispara os temporizadores
-	//LARGE_INTEGER dueTime;
+	//--dispara os temporizadores
+	LARGE_INTEGER dueTime;
 
-	//dueTime.QuadPart = -1000;
+	dueTime.QuadPart = -1000;
 
-	//SetWaitableTimer(hWaitMsg11, &dueTime, 1000*(rand()%10), NULL,NULL, FALSE);
+	SetWaitableTimer(hWaitMsg11, &dueTime, 500, NULL,NULL, FALSE);
+	SetWaitableTimer(hWaitMsg11, &dueTime, 500, NULL, NULL, FALSE);
 
 
 	int status;
@@ -248,7 +252,6 @@ int main(char args[]) {
 	gotoxy(19, 13);
 
 	while (TRUE) {
-		//a = cin.get();
 		a = _getch();
 		switch (a)
 		{
@@ -363,8 +366,6 @@ int main(char args[]) {
 			break;
 		}
 	}
-
-
 	return 0;
 }
 
@@ -487,83 +488,99 @@ DWORD WINAPI CapturaDeMensagensTipo22() {
 
 DWORD WINAPI CatchProcessData() {
 
+	unsigned int ThreadMsg11Id;
+	unsigned int ThreadMsg22Id;
 
-	while (true)
-	{
+	HANDLE h_threadMsg22 = (HANDLE)_beginthreadex(
+		NULL,
+		0,
+		(CAST_FUNCTION)Generate22,
+		NULL,
+		0,
+		&ThreadMsg22Id
+	);
 
-		clock_t tick;
-		double tempo = 0;
-		int maior = 2000;
-		int menor = 100;
-		double reference = (double)(rand() % (maior - menor + 1) + menor);
-		tick = clock();
-		int a = 0;
-		int currentNSEQTipo1 = 1;
-		int currentNSEQTipo2 = 1;
-		std::string msg1;
-		std::string msg2;
+	HANDLE h_threadMsg11 = (HANDLE)_beginthreadex(
+		NULL,
+		0,
+		(CAST_FUNCTION)Generate11,
+		NULL,
+		0,
+		&ThreadMsg11Id
 
-		while (true) {
+	);
 
-			WaitForSingleObject(hEventPausaInspect, INFINITE);
-			
-			tempo = (clock() - tick) * 1000 / CLOCKS_PER_SEC;
-			
-			
-			
-				if (currentIndex == 200) {
-					//cout << "lista cheia";
-					currentIndex = 0;
-					ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
-				}
-			if (tempo >= reference) {
+	return 0;
+}
 
-				msg1 = GenerateMessageType1(currentNSEQTipo1);
+DWORD WINAPI Generate11() {
 
-				WaitForSingleObject(hMutexVarLista, INFINITE);
-				//if (--listCount == 0) {
-				//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-				//}
-				//else {
-				//	//cout << "[--- COUNT]: " << listCount << endl;
-				//}
-				ReleaseMutex(hMutexVarLista);
-				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+	WaitForSingleObject(hEventPausaInspect, INFINITE);
+	int currentNSEQTipo1 = 1;
+	std::string msg1;
 
-				listaMensagens[currentIndex] = msg1;
-				//cout << "[DEPOSITADA MENSAGEM TIPO 11]: " << msg1 << endl;
-				
+	while (TRUE) {
+ 		WaitForSingleObject(hWaitMsg11, INFINITE);
+		
+		msg1 = GenerateMessageType1(currentNSEQTipo1);
 
-				currentNSEQTipo1++;
-				currentIndex++;
-				reference = (double)(rand() % (maior - menor + 1) + menor);
-				tick = clock();
-			}
-				if (currentIndex == 200) currentIndex = 0;
-				ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
+		WaitForSingleObject(hMutexVarLista, INFINITE);
+		if (--listCount == 0) {
+			cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
+		}
+		else {
+			cout << "[--- COUNT]: " << listCount << endl;
+		}
+		ReleaseMutex(hMutexVarLista);
+		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+		WaitForSingleObject(hMutexLista, INFINITE);
+		listaMensagens[currentIndex] = msg1;
+		ReleaseMutex(hMutexLista);
 
-				
 
-			if (tempo == 500) {
-				msg2 = GenerateMessageType2(currentNSEQTipo2);
-				WaitForSingleObject(hMutexVarLista, INFINITE);
-				//if (--listCount == 0) {
-				//	//cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-				//}
+		currentNSEQTipo1++;
+		currentIndex++;
 
-				ReleaseMutex(hMutexVarLista);
-				WaitForSingleObject(hSemaphoreLVazia, INFINITE);
-				listaMensagens[currentIndex] = msg2;
-				//cout << "[DEPOSITADA MENSAGEM TIPO 22]: " << msg2 << endl;
+		if (currentIndex == 200) {
+			currentIndex = 0;
+			cout << "Lista cheia";
+		}
+		ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
+	}
+	return 0;
+}
 
-				currentNSEQTipo2++;
-				currentIndex++;
-			}
-				if (currentIndex == 200) currentIndex = 0;
-				ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+DWORD WINAPI Generate22() {
+
+	int currentNSEQTipo2 = 1;
+	std::string msg2;
+
+	while (TRUE) {
+		WaitForSingleObject(hWaitMsg22, INFINITE);
+
+		msg2 = GenerateMessageType2(currentNSEQTipo2);
+		WaitForSingleObject(hMutexVarLista, INFINITE);
+		if (--listCount == 0) {
+			cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
 		}
 
+		ReleaseMutex(hMutexVarLista);
+		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+		WaitForSingleObject(hMutexLista, INFINITE);
+		listaMensagens[currentIndex] = msg2;
+		ReleaseMutex(hMutexLista);
+		cout << "[DEPOSITADA MENSAGEM TIPO 22]: " << msg2 << endl;
+
+		currentNSEQTipo2++;
+		currentIndex++;
+
+		if (currentIndex == 200) {
+			currentIndex = 0;
+			cout << "Lista cheia";
+		}
+		ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
 	}
 
+	return 0;
 }
 
