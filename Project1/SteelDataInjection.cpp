@@ -526,9 +526,18 @@ DWORD WINAPI Generate11() {
 		
 		msg1 = GenerateMessageType1(currentNSEQTipo1);
 
-		//WaitForSingleObject(hMutexVarLista, INFINITE);
-		//
-		//ReleaseMutex(hMutexVarLista);
+		WaitForSingleObject(hMutexVarLista, INFINITE);
+		if (--listCount == 0) {
+			gotoxy(57, 2);
+			cout << "          [A LISTA ESTA CHEIA ]         ";
+			gotoxy(19, 13);
+		}
+		else {
+			gotoxy(57, 2);
+			cout << "         [POSICOES LIVRES]:" << listCount << "   ";
+			gotoxy(19, 13);
+		}
+		ReleaseMutex(hMutexVarLista);
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg1;
@@ -538,7 +547,6 @@ DWORD WINAPI Generate11() {
 		currentIndex++;
 		ReleaseMutex(hMutexWriteList);
 
-		gotoxy(19, 13);
 		if (currentIndex == 200) {
 			currentIndex = 0;
 		}
@@ -556,7 +564,12 @@ DWORD WINAPI Generate22() {
 		WaitForSingleObject(hWaitMsg22, INFINITE);
 
 		msg2 = GenerateMessageType2(currentNSEQTipo2);
+		WaitForSingleObject(hMutexVarLista, INFINITE);
+		if (--listCount == 0) {
+			cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
+		}
 
+		ReleaseMutex(hMutexVarLista);
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg2;
