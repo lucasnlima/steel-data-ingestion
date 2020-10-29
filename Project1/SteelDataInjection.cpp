@@ -538,6 +538,7 @@ DWORD WINAPI Generate11() {
 			gotoxy(19, 13);
 		}
 		ReleaseMutex(hMutexVarLista);
+		
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg1;
@@ -545,12 +546,14 @@ DWORD WINAPI Generate11() {
 
 		currentNSEQTipo1++;
 		currentIndex++;
-		ReleaseMutex(hMutexWriteList);
+		
 
-		if (currentIndex == 200) {
+		if (currentIndex == 199) {
 			currentIndex = 0;
 		}
 		ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
+
+		ReleaseMutex(hMutexWriteList);
 	}
 	return 0;
 }
@@ -570,18 +573,21 @@ DWORD WINAPI Generate22() {
 		}
 
 		ReleaseMutex(hMutexVarLista);
+		
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg2;
 
 		currentNSEQTipo2++;
 		currentIndex++;
-		ReleaseMutex(hMutexWriteList);
-
-		if (currentIndex == 200) {
+		
+		if (currentIndex == 199) {
 			currentIndex = 0;
 		}
 		ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+		ReleaseMutex(hMutexWriteList);
+
+		
 	}
 
 	return 0;
