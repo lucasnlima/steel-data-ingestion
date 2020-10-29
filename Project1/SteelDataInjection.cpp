@@ -39,6 +39,7 @@ HANDLE hSemaphorePipeLimpa;
 HANDLE hPipeLimpa;
 HANDLE hSemaphoreArquivo;
 HANDLE hMutexLista;
+HANDLE hMutexWriteList;
 HANDLE hMutexVarLista;
 HANDLE hEventPausa11;
 HANDLE hEventPausa22;
@@ -157,6 +158,7 @@ int main(char args[]) {
 
 	//---Incialização do Mutexes
 	hMutexLista = CreateMutex(NULL, false, "hMutexLista");
+	hMutexWriteList = CreateMutex(NULL, false, "MutexWriteList");
 	hMutexVarLista = CreateMutex(NULL, false, "hMutexVarLista");
 
 	//--Inicizalização dos Eventos
@@ -167,8 +169,8 @@ int main(char args[]) {
 	hEventPausaProcessDisplay = CreateEvent(NULL, true, true, TEXT("EventPausaProcessDisplay"));
 
 	//--Inicialização dos waitable timers
-	hWaitMsg11 = CreateWaitableTimer(NULL, FALSE, "WaitMsg11");
-	hWaitMsg22 = CreateWaitableTimer(NULL, FALSE, "WaitMsg22");
+	hWaitMsg11 = CreateWaitableTimer(NULL, false, "WaitMsg11");
+	hWaitMsg22 = CreateWaitableTimer(NULL, false, "WaitMsg22");
 
 
 	//-- Inicia as threads secudarias do processo princiapl
@@ -205,10 +207,10 @@ int main(char args[]) {
 	//--dispara os temporizadores
 	LARGE_INTEGER dueTime;
 
-	dueTime.QuadPart = -1000;
+	dueTime.QuadPart = -2000;
 
 	SetWaitableTimer(hWaitMsg11, &dueTime, 500, NULL,NULL, FALSE);
-	SetWaitableTimer(hWaitMsg11, &dueTime, 500, NULL, NULL, FALSE);
+	SetWaitableTimer(hWaitMsg22, &dueTime, 2000, NULL, NULL, FALSE);
 
 
 	int status;
@@ -234,7 +236,7 @@ int main(char args[]) {
 		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
-
+	gotoxy(0, 0);
 	std::cout << "________________________________________________________________\n" <<
 		"                   Steel Data Injection  v2.0             \n" <<
 		"----------------------------------------------------------------\n" <<
@@ -524,26 +526,21 @@ DWORD WINAPI Generate11() {
 		
 		msg1 = GenerateMessageType1(currentNSEQTipo1);
 
-		WaitForSingleObject(hMutexVarLista, INFINITE);
-		if (--listCount == 0) {
-			cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-		}
-		else {
-			cout << "[--- COUNT]: " << listCount << endl;
-		}
-		ReleaseMutex(hMutexVarLista);
+		//WaitForSingleObject(hMutexVarLista, INFINITE);
+		//
+		//ReleaseMutex(hMutexVarLista);
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
-		WaitForSingleObject(hMutexLista, INFINITE);
+		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg1;
-		ReleaseMutex(hMutexLista);
 
 
 		currentNSEQTipo1++;
 		currentIndex++;
+		ReleaseMutex(hMutexWriteList);
 
+		gotoxy(19, 13);
 		if (currentIndex == 200) {
 			currentIndex = 0;
-			cout << "Lista cheia";
 		}
 		ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
 	}
@@ -559,24 +556,17 @@ DWORD WINAPI Generate22() {
 		WaitForSingleObject(hWaitMsg22, INFINITE);
 
 		msg2 = GenerateMessageType2(currentNSEQTipo2);
-		WaitForSingleObject(hMutexVarLista, INFINITE);
-		if (--listCount == 0) {
-			cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-		}
 
-		ReleaseMutex(hMutexVarLista);
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
-		WaitForSingleObject(hMutexLista, INFINITE);
+		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg2;
-		ReleaseMutex(hMutexLista);
-		cout << "[DEPOSITADA MENSAGEM TIPO 22]: " << msg2 << endl;
 
 		currentNSEQTipo2++;
 		currentIndex++;
+		ReleaseMutex(hMutexWriteList);
 
 		if (currentIndex == 200) {
 			currentIndex = 0;
-			cout << "Lista cheia";
 		}
 		ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
 	}
