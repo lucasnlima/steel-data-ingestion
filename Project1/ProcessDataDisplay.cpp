@@ -38,7 +38,7 @@ int WatchKeyboard() {
 	char buffer[1];
 	HANDLE hSemaphorePipe;
 	hSemaphorePipe = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemPipeLimpa");
-	cout << GetLastError();
+	//cout << GetLastError();
 
 	hPipe = CreateNamedPipe(
 		"\\\\.\\pipe\\teste",
@@ -56,7 +56,7 @@ int WatchKeyboard() {
 	bStatus = ConnectNamedPipe(hPipe, NULL);
 	int a = GetLastError();
 	if (!bStatus) {
-		cout << "error";
+		//cout << "error";
 	}
 
 	while (true) {
@@ -64,10 +64,10 @@ int WatchKeyboard() {
 		ZeroMemory(buffer, sizeof(buffer));
 		bStatus = ReadFile(hPipe, &buffer, 1, &dwBytesRead, NULL);
 		if (!bStatus) {
-			cout << "error";
+			//cout << "error";
 		}
 
-		cout << buffer[0] << endl;
+		//cout << buffer[0] << endl;
 		string opcao = to_string(buffer[0]);
 
 		if (opcao == "99") {
@@ -111,14 +111,14 @@ int main() {
 	char buffer[46];
 	int linhasArquivo = 0;
 	hMutexArquivo = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "MutexArquivo");
-	cout << "ERRO AO ABRIR O SEMAFORO: " << GetLastError() << endl;
+	//cout << "ERRO AO ABRIR O SEMAFORO: " << GetLastError() << endl;
 
 
 	hSemArquivoAtualizado = OpenSemaphore(SEMAPHORE_ALL_ACCESS, true, "SemAtArquivo");
 
 	hEventPauseProcessDisplay = OpenEvent(SYNCHRONIZE, FALSE, TEXT("EventPausaProcessDisplay"));
 	if (hEventPauseProcessDisplay == NULL) {
-		cout << "Erro ao abrir o handle de evento. COD: " << GetLastError();
+		//cout << "Erro ao abrir o handle de evento. COD: " << GetLastError();
 	}
 
 
@@ -132,7 +132,7 @@ int main() {
 		NULL
 	);
 
-	cout << GetLastError();
+	//cout << GetLastError();
 
 	while (true) {
 		WaitForSingleObject(hEventPauseProcessDisplay, INFINITE);
@@ -142,7 +142,6 @@ int main() {
 		WaitForSingleObject(hSemArquivoAtualizado, INFINITE);
 
 		//WaitForSingleObject(hMutexArquivo, INFINITE);
-		Sleep(1000);
 		//LockFile(hFile, 0, 0, 4600, 0);
 		if (linhasArquivo == 99) {
 			linhasArquivo = 0;
@@ -153,7 +152,7 @@ int main() {
 		}
 		bStatus = ReadFile(hFile, buffer, sizeof(buffer), &dwBytesRead, NULL);
 		if (!bStatus) {
-			cout << GetLastError();
+			//cout << GetLastError();
 		}
 		//UnlockFile(hFile, 0, NULL, 4600, 0);
 		ReleaseSemaphore(hMutexArquivo, 1, NULL);

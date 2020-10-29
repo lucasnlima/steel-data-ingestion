@@ -53,7 +53,7 @@ int main() {
 
 	bStatus = ConnectNamedPipe(hPipe, NULL);
 	if (!bStatus) {
-		cout << "error";
+		//cout << "error";
 	}
 
 	while (true) {
@@ -65,7 +65,7 @@ int main() {
 		splitedMessage = splitMessage(mensagemRecebida);
 
 		if (!bStatus) {			
-			cout << "error";
+			//cout << "error";
 		}	
 
 		string time = splitedMessage[6];

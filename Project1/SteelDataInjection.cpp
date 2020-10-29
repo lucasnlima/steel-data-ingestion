@@ -97,6 +97,24 @@ int main(char args[]) {
 
 	SetConsoleTitle("Processo Principal");
 
+	gotoxy(0, 0);
+	std::cout << "________________________________________________________________\n" <<
+		"                   Steel Data Injection  v2.0             \n" <<
+		"----------------------------------------------------------------\n" <<
+		" Programa para coleta de dados de laminacaoo de aco\n Opcoes:\n" <<
+		"  <i> Set/Reset Inspecao de defeitos.\n" <<
+		"  <d> Set/Reset Captura de mensagens de defeito.\n" <<
+		"  <e> Set/Reset Captura de mensagens de dados do processo.\n" <<
+		"  <a> Set/Reset Exeibicao de defeitos.\n" <<
+		"  <l> Set/Reset Exibicao de dados do processo.\n" <<
+		"  <c> Set/Reset Limpar janela de exibicao de dados do processo.\n" <<
+		"  <ESC> Finalizar aplicacao.\n\n" <<
+		" Escolha uma opcao:";
+	gotoxy(0, 15);
+	std::cout << "[LOG DE COMANDOS INSERIDOS]" << endl;
+
+
+
 	STARTUPINFO siDataDisplay;				    // StartUpInformation para novo processo
 	PROCESS_INFORMATION ProcessDataDisplay;	// Informações sobre novo processo criado
 
@@ -169,7 +187,6 @@ int main(char args[]) {
 	hEventPausaProcessDisplay = CreateEvent(NULL, true, true, TEXT("EventPausaProcessDisplay"));
 
 	//--Inicialização dos waitable timers
-	hWaitMsg11 = CreateWaitableTimer(NULL, false, "WaitMsg11");
 	hWaitMsg22 = CreateWaitableTimer(NULL, false, "WaitMsg22");
 
 
@@ -206,15 +223,10 @@ int main(char args[]) {
 
 	//--dispara os temporizadores
 	LARGE_INTEGER dueTime;
-
-	dueTime.QuadPart = -2000;
-
-	SetWaitableTimer(hWaitMsg11, &dueTime, 500, NULL,NULL, FALSE);
-	SetWaitableTimer(hWaitMsg22, &dueTime, 2000, NULL, NULL, FALSE);
-
+	dueTime.QuadPart = -1000;
+	SetWaitableTimer(hWaitMsg22, &dueTime, 500, NULL, NULL, FALSE);
 
 	int status;
-
 
 	//---Aguarda leitura do teclada
 	char a = 0;
@@ -236,23 +248,9 @@ int main(char args[]) {
 		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
-	gotoxy(0, 0);
-	std::cout << "________________________________________________________________\n" <<
-		"                   Steel Data Injection  v2.0             \n" <<
-		"----------------------------------------------------------------\n" <<
-		" Programa para coleta de dados de laminacaoo de aco\n Opcoes:\n" <<
-		"  <i> Set/Reset Inspecao de defeitos.\n" <<
-		"  <d> Set/Reset Captura de mensagens de defeito.\n" <<
-		"  <e> Set/Reset Captura de mensagens de dados do processo.\n" <<
-		"  <a> Set/Reset Exeibicao de defeitos.\n" <<
-		"  <l> Set/Reset Exibicao de dados do processo.\n" <<
-		"  <c> Set/Reset Limpar janela de exibicao de dados do processo.\n" <<
-		"  <ESC> Finalizar aplicacao.\n\n" <<
-		" Escolha uma opcao:";
-	gotoxy(0, 15);
-	std::cout << "[LOG DE COMANDOS INSERIDOS]" << endl;
-	gotoxy(19, 13);
 
+	//-----Rotina de leitura do teclado
+	
 	while (TRUE) {
 		a = _getch();
 		switch (a)
@@ -517,15 +515,63 @@ DWORD WINAPI CatchProcessData() {
 
 DWORD WINAPI Generate11() {
 
-	WaitForSingleObject(hEventPausaInspect, INFINITE);
 	int currentNSEQTipo1 = 1;
 	std::string msg1;
+	clock_t tick;
+	double tempo = 0;
+	int maior = 2000;
+	int menor = 100;
+	double reference = (double)(rand() % (maior - menor + 1) + menor);
+	tick = clock();
 
 	while (TRUE) {
- 		WaitForSingleObject(hWaitMsg11, INFINITE);
-		
-		msg1 = GenerateMessageType1(currentNSEQTipo1);
+		WaitForSingleObject(hEventPausaInspect, INFINITE);
+		tempo = (clock() - tick) * 1000 / CLOCKS_PER_SEC;
+		if (tempo >= reference) {
+			msg1 = GenerateMessageType1(currentNSEQTipo1);
 
+			WaitForSingleObject(hMutexVarLista, INFINITE);
+			if (--listCount == 0) {
+				gotoxy(57, 2);
+				cout << "          [A LISTA ESTA CHEIA ]         ";
+				gotoxy(19, 13);
+			}
+			else {
+				gotoxy(57, 2);
+				cout << "         [POSICOES LIVRES]:" << listCount << "   ";
+				gotoxy(19, 13);
+			}
+			ReleaseMutex(hMutexVarLista);
+			WaitForSingleObject(hSemaphoreLVazia, INFINITE);
+			WaitForSingleObject(hMutexWriteList, INFINITE);
+			listaMensagens[currentIndex] = msg1;
+
+
+			currentNSEQTipo1++;
+			currentIndex++;
+
+
+			if (currentIndex == 199) {
+				currentIndex = 0;
+			}
+			ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
+			ReleaseMutex(hMutexWriteList);
+			reference = (double)(rand() % (maior - menor + 1) + menor);
+			tick = clock();
+		}
+	}
+	return 0;
+}
+
+DWORD WINAPI Generate22() {
+
+	int currentNSEQTipo2 = 1;
+	std::string msg2;
+
+	while (TRUE) {
+		WaitForSingleObject(hEventPausaInspect, INFINITE);
+		WaitForSingleObject(hWaitMsg22, INFINITE);
+		msg2 = GenerateMessageType2(currentNSEQTipo2);
 		WaitForSingleObject(hMutexVarLista, INFINITE);
 		if (--listCount == 0) {
 			gotoxy(57, 2);
@@ -540,48 +586,16 @@ DWORD WINAPI Generate11() {
 		ReleaseMutex(hMutexVarLista);
 		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
 		WaitForSingleObject(hMutexWriteList, INFINITE);
-		listaMensagens[currentIndex] = msg1;
-
-
-		currentNSEQTipo1++;
-		currentIndex++;
-		ReleaseMutex(hMutexWriteList);
-
-		if (currentIndex == 200) {
-			currentIndex = 0;
-		}
-		ReleaseSemaphore(hSemaphoreLCheiaTipo11, 1, &semCount11);
-	}
-	return 0;
-}
-
-DWORD WINAPI Generate22() {
-
-	int currentNSEQTipo2 = 1;
-	std::string msg2;
-
-	while (TRUE) {
-		WaitForSingleObject(hWaitMsg22, INFINITE);
-
-		msg2 = GenerateMessageType2(currentNSEQTipo2);
-		WaitForSingleObject(hMutexVarLista, INFINITE);
-		if (--listCount == 0) {
-			cout << "-------- A LISTA ESTA CHEIA ------------" << endl;
-		}
-
-		ReleaseMutex(hMutexVarLista);
-		WaitForSingleObject(hSemaphoreLVazia, INFINITE);
-		WaitForSingleObject(hMutexWriteList, INFINITE);
 		listaMensagens[currentIndex] = msg2;
 
 		currentNSEQTipo2++;
 		currentIndex++;
-		ReleaseMutex(hMutexWriteList);
 
-		if (currentIndex == 200) {
+		if (currentIndex == 199) {
 			currentIndex = 0;
 		}
 		ReleaseSemaphore(hSemaphoreLCheiaTipo22, 1, &semCount22);
+		ReleaseMutex(hMutexWriteList);
 	}
 
 	return 0;
